@@ -1,0 +1,29 @@
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./fastapi/Dockerfile/local/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./fastapi:/fastapi
+    env_file:
+      - .envs/local/postgres
+    depends_on:
+      - postgres
+    
+  postgres:
+    # image: postgres:15
+    build:
+      context: .
+      dockerfile: ./postgres/Dockerfile/local/Dockerfile
+    # ports:
+    #   - "5432:5432"
+    env_file:
+      - .envs/local/postgres
+    volumes:
+      - fastapi01_postgres_data:/var/lib/postgresql/data
+    # context: ./postgres ←必要あればカスタムイメージに切替可能
+
+volumes:
+  fastapi01_postgres_data:
