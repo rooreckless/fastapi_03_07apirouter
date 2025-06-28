@@ -7,6 +7,7 @@ uvicorn[standard]   # apサーバ(GunicornがWSGIサーバーだったが、こ�
 # --DB関連--
 sqlalchemy #ORM
 alembic #sqlalchemy用マイグレーション
+psycopg2-binary
 asyncpg #psycopg2とは違い、非同期でposgrresを使うためのドライバ
 python-dotenv
 # --httpリクエスト関連--

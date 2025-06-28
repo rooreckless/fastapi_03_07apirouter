@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
+    container_name:
+      fastapi
     ports:
       - "8000:8000"
     volumes:
@@ -17,8 +19,10 @@ services:
     build:
       context: .
       dockerfile: ./postgres/Dockerfile/local/Dockerfile
-    # ports:
-    #   - "5432:5432"
+    container_name:
+      postgresql
+    ports:
+      - "5432:5432"
     env_file:
       - .envs/local/postgres
     volumes:
