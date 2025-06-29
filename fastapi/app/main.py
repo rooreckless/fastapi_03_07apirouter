@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from app.routers.categories import router as category_router
 from app.routers.items import router as item_router
 
@@ -12,6 +12,21 @@ app.include_router(item_router)
 @app.get("/")
 async def root():
     return {"message": "Hello FastAPI + PostgreSQL + Docker Compose!"}
+
+
+# import uuid
+# def get_token():
+#     token = str(uuid.uuid4())
+#     print(f"Token generated: {token}")
+#     return token
+
+# @app.get("/with_depends")
+# def read_with_depends(token: str = Depends(get_token)):
+#     return {"token": token}
+
+# @app.get("/no_depends")
+# def read_no_depends(token: str = get_token()):  # 起動時に一度だけ実行される
+#     return {"token": token}
 
 #--- スキーマ---
 

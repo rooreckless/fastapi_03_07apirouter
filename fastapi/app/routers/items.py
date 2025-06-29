@@ -1,41 +1,33 @@
-# from fastapi import APIRouter
-# from app.schemas.item import Item
-
-# router =APIRouter()
-
-# @router.get("/items/", response_model=dict)
-# async def read_items():
-#     # 実際にはDBから取得処理がここ
-#     return {"message": "商品一覧を表示", "items":[]}
-
-# @router.post("/items/", response_model=dict)
-# async def create_item(item: Item):
-#     # 実際にはDBに保存する処理がここ
-#     return {"message": "商品を作成", "item": item}
-
-# @router.put("/items/{item_id}", response_model=dict)
-# async def update_item(item_id: int, item: Item):
-#     # 実際にはDBに更新する処理がここ
-#     return {"message": "商品を更新", "item_id": item_id, "item": item}
-
-# @router.delete("/items/{item_id}", response_model=dict)
-# async def delete_item(item_id: int):
-#     # 実際にはDBから削除する処理がここ
-#     return {"message": "商品を削除", "item_id": item_id}
-
-
+# ⑤プレゼンテーション層
+# app/routers/items.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.item import ItemCreate, ItemOut
+from app.dto.item_dto import ItemCreateDTO, ItemReadDTO
 from app.db.database import get_db
-from app.crud import item as crud
+from app.infrastructure.sqlalchemy.repositories.item_repo_impl import SQLAlchemyItemRepository
+from app.usecases.item.create_item import CreateItemUseCase
+from app.usecases.item.list_items import ListItemsUseCase
 
-router = APIRouter()
+router = APIRouter(prefix="/items")
 
-@router.post("/items/", response_model=ItemOut)
-async def create(item: ItemCreate, db: AsyncSession = Depends(get_db)):
-    return await crud.create_item(db, item)
+# DIチェーン
+def get_item_repo(db: AsyncSession = Depends(get_db)):
+    return SQLAlchemyItemRepository(db)
 
-@router.get("/items/", response_model=list[ItemOut])
-async def list_items(db: AsyncSession = Depends(get_db)):
-    return await crud.get_all_items(db)
+def get_create_uc(repo=Depends(get_item_repo)):
+    return CreateItemUseCase(repo)
+
+def get_list_uc(repo=Depends(get_item_repo)):
+    return ListItemsUseCase(repo)
+
+@router.post("/", response_model=ItemReadDTO)
+async def create(dto: ItemCreateDTO,
+                 uc: CreateItemUseCase = Depends(get_create_uc)):
+    print("--dto--",dto)
+    item = await uc.execute(dto.item_name, dto.category_id)
+    return ItemReadDTO(item_id=item.id, item_name=item.name, category_id=item.category_id)
+
+@router.get("/", response_model=list[ItemReadDTO])
+async def list_all(uc: ListItemsUseCase = Depends(get_list_uc)):
+    items = await uc.execute()
+    return [ItemReadDTO(item_id=c.id, item_name=c.name, category_id=c.category_id) for c in items]
