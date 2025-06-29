@@ -1,3 +1,5 @@
+# app/dto/item_dto.py
+# スキーマ
 from pydantic import BaseModel, ConfigDict
 
 class ItemBase(BaseModel):
