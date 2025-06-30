@@ -1,5 +1,5 @@
 # app/dto/item_dto.py
-# スキーマ
+# スキーマ =⑤のエンドポイントで引数に入れられる
 from pydantic import BaseModel, ConfigDict
 
 class ItemBase(BaseModel):
@@ -7,6 +7,8 @@ class ItemBase(BaseModel):
     category_id: int
 
 class ItemCreateDTO(ItemBase):
+    pass
+class ItemUpdateDTO(ItemBase):
     pass
 
 class ItemReadDTO(ItemBase):

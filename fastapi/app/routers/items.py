@@ -2,12 +2,13 @@
 # app/routers/items.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.dto.item_dto import ItemCreateDTO, ItemReadDTO
+from app.dto.item_dto import ItemCreateDTO, ItemReadDTO,ItemUpdateDTO
 from app.db.database import get_db
 from app.infrastructure.sqlalchemy.repositories.item_repo_impl import SQLAlchemyItemRepository
 from app.usecases.item.create_item import CreateItemUseCase
 from app.usecases.item.list_items import ListItemsUseCase
 from app.usecases.item.get_item import GetItemUseCase
+from app.usecases.item.update_item import UpdateItemUseCase
 
 router = APIRouter(prefix="/items")
 
@@ -24,6 +25,11 @@ def get_list_uc(repo=Depends(get_item_repo)):
 def get_get_uc(repo=Depends(get_item_repo)):
     return GetItemUseCase(repo)
 
+def get_update_uc(repo=Depends(get_item_repo)):
+    return UpdateItemUseCase(repo)
+
+# エンドポイント
+# 各メソッドの引数dtoはスキーマの型、ucでユースケースの型を指定。ただし、ucについてはDependsでユースケースをラップし、fastapiまかせにする
 @router.post("/", response_model=ItemReadDTO)
 async def create(dto: ItemCreateDTO,
                  uc: CreateItemUseCase = Depends(get_create_uc)):
@@ -40,6 +46,15 @@ async def list_all(uc: ListItemsUseCase = Depends(get_list_uc)):
 async def get_item(item_id: int,
                    uc: GetItemUseCase = Depends(get_get_uc)):
     item = await uc.execute(item_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return ItemReadDTO(item_id=item.id, item_name=item.name, category_id=item.category_id)
+
+@router.put("/{item_id}", response_model=ItemReadDTO)
+async def update_item(item_id: int,
+                      dto: ItemUpdateDTO,
+                      uc: UpdateItemUseCase = Depends(get_update_uc)):
+    item = await uc.execute(item_id, dto.item_name, dto.category_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     return ItemReadDTO(item_id=item.id, item_name=item.name, category_id=item.category_id)

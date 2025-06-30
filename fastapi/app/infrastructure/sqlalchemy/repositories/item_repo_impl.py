@@ -8,7 +8,7 @@ from app.repository.item_repository import ItemRepository  # ②の抽象リポ�
 
 
 class SQLAlchemyItemRepository(ItemRepository):
-    #  ②の抽象リポジトリを継承して実装
+    #  ②の抽象リポジトリを継承して実装= ②で指定したメソッドは以下で実装しないといけなくする
     def __init__(self, db: AsyncSession):
         self.db = db
 
@@ -34,3 +34,11 @@ class SQLAlchemyItemRepository(ItemRepository):
         if row is None:
             return None
         return Item(item_id=row.item_id, name=row.item_name, category_id=row.category_id)
+    
+    async def update(self, item: Item) -> None:
+        # Itemの更新に使う
+        db_item = await self.db.get(ItemORM, item.id)
+        if db_item:
+            db_item.item_name = item.name
+            db_item.category_id = item.category_id
+            await self.db.commit()
