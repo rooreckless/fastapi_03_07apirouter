@@ -9,6 +9,11 @@ from pydantic import BaseModel
 class CategoryCreateDTO(BaseModel):
     category_name: str
 
+class CategoryUpdateDTO(CategoryCreateDTO):
+    pass
+    # class Config:
+    #     from_attributes = True
+
 class CategoryReadDTO(CategoryCreateDTO):
     category_id: int
 

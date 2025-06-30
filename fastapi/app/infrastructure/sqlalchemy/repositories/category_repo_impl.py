@@ -31,3 +31,10 @@ class SQLAlchemyCategoryRepository(CategoryRepository):
         if row is None:
             return None
         return Category(category_id=row.category_id, name=row.category_name)
+    
+    async def update(self, category: Category) -> None:
+        # Itemの更新に使う
+        db_item = await self.db.get(CategoryORM, category.id)
+        if db_item:
+            db_item.category_name = category.name
+            await self.db.commit()
