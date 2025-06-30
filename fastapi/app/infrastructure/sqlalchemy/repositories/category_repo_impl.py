@@ -21,3 +21,13 @@ class SQLAlchemyCategoryRepository(CategoryRepository):
     async def list_all(self) -> list[Category]:
         res = await self.db.execute(select(CategoryORM))
         return [Category(r.category_id, r.category_name) for r in res.scalars().all()]
+
+    async def get_by_id(self, category_id: int) -> Category | None:
+        # Itemの詳細取得に使う
+        result = await self.db.execute(
+            select(CategoryORM).filter(CategoryORM.category_id == category_id)
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            return None
+        return Category(category_id=row.category_id, name=row.category_name)
