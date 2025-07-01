@@ -1,14 +1,15 @@
 # ⑤プレゼンテーション層
 # app/routers/items.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.dto.item_dto import ItemCreateDTO, ItemReadDTO,ItemUpdateDTO
+from app.dto.item_dto import ItemCreateDTO, ItemReadDTO, ItemUpdateDTO, ItemUpdateNameDTO
 from app.db.database import get_db
 from app.infrastructure.sqlalchemy.repositories.item_repo_impl import SQLAlchemyItemRepository
 from app.usecases.item.create_item import CreateItemUseCase
 from app.usecases.item.list_items import ListItemsUseCase
 from app.usecases.item.get_item import GetItemUseCase
 from app.usecases.item.update_item import UpdateItemUseCase
+from app.usecases.item.update_item_name import UpdateItemNameUseCase
 
 router = APIRouter(prefix="/items")
 
@@ -27,6 +28,9 @@ def get_get_uc(repo=Depends(get_item_repo)):
 
 def get_update_uc(repo=Depends(get_item_repo)):
     return UpdateItemUseCase(repo)
+
+def get_update_name_uc(repo=Depends(get_item_repo)):
+    return UpdateItemNameUseCase(repo)
 
 # エンドポイント
 # 各メソッドの引数dtoはスキーマの型、ucでユースケースの型を指定。ただし、ucについてはDependsでユースケースをラップし、fastapiまかせにする
@@ -58,3 +62,42 @@ async def update_item(item_id: int,
     if item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     return ItemReadDTO(item_id=item.id, item_name=item.name, category_id=item.category_id)
+
+# Itemの一部更新(商品名のみ更新のルート)
+# ただし、Itemの新しい名前はfastapi.Bodyを使い、リクエストボディの内容を直接取得する方法にしてる
+@router.put("/{item_id}/name_body", response_model=ItemReadDTO)
+async def update_name_body(
+    item_id: int,
+    new_name: str = Body(..., embed=True),
+    uc: UpdateItemNameUseCase = Depends(get_update_name_uc)
+):
+    try:
+        item = await uc.execute(item_id, new_name)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    return ItemReadDTO(
+        item_id=item.id,
+        item_name=item.name,
+        category_id=item.category_id
+    )
+
+# Itemの一部更新(商品名のみ更新のルート)
+# ただし、Itemの新しい名前はPydanticを使い、リクエストボディの内容はdtoがうける方法にしてる
+# dtoケースは複数の入力値、複数のフィールドがある場合に使うべきだが、比較のため実施している
+@router.put("/{item_id}/name_dto", response_model=ItemReadDTO)
+async def update_name_dto(
+    item_id: int,
+    dto: ItemUpdateNameDTO,
+    uc: UpdateItemNameUseCase = Depends(get_update_name_uc)
+):
+    try:
+        item = await uc.execute(item_id, dto.item_name)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    return ItemReadDTO(
+        item_id=item.id,
+        item_name=item.name,
+        category_id=item.category_id
+    )

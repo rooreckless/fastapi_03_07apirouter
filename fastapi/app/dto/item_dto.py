@@ -10,6 +10,9 @@ class ItemCreateDTO(ItemBase):
     pass
 class ItemUpdateDTO(ItemBase):
     pass
+class ItemUpdateNameDTO(BaseModel):
+    # ItemのNameだけを更新する際に使う
+    item_name: str
 
 class ItemReadDTO(ItemBase):
     item_id: int
