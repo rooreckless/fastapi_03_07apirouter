@@ -10,6 +10,7 @@ from app.usecases.item.list_items import ListItemsUseCase
 from app.usecases.item.get_item import GetItemUseCase
 from app.usecases.item.update_item import UpdateItemUseCase
 from app.usecases.item.update_item_name import UpdateItemNameUseCase
+from app.usecases.item.delete_item import DeleteItemUseCase
 
 router = APIRouter(prefix="/items")
 
@@ -31,6 +32,9 @@ def get_update_uc(repo=Depends(get_item_repo)):
 
 def get_update_name_uc(repo=Depends(get_item_repo)):
     return UpdateItemNameUseCase(repo)
+
+def get_delete_uc(repo=Depends(get_item_repo)):
+    return DeleteItemUseCase(repo)
 
 # エンドポイント
 # 各メソッドの引数dtoはスキーマの型、ucでユースケースの型を指定。ただし、ucについてはDependsでユースケースをラップし、fastapiまかせにする
@@ -101,3 +105,12 @@ async def update_name_dto(
         item_name=item.name,
         category_id=item.category_id
     )
+
+@router.delete("/{item_id}", status_code=204)
+async def delete_item(item_id: int, uc: DeleteItemUseCase = Depends(get_delete_uc)):
+    try:
+        await uc.execute(item_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail="str(e)")
+    # なにも返さなくていい。(他のユースケースだと、レコードをDTOで返すが、削除だと不要)
+    return None

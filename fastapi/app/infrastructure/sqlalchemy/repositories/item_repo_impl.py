@@ -42,3 +42,18 @@ class SQLAlchemyItemRepository(ItemRepository):
             db_item.item_name = item.name
             db_item.category_id = item.category_id
             await self.db.commit()
+    async def delete(self, item_id: int) -> Item | None:
+        # # Itemの削除に使う
+        # result = await self.db.execute(
+        #     select(ItemORM).filter(ItemORM.item_id == item_id)
+        # )
+        # row = result.scalar_one_or_none()
+        # print("---delete---row=",row)
+        # result.delete()
+        item = await self.db.get(ItemORM, item_id)
+        print("----item=",item)
+        if item is None:
+            raise ValueError(f"Item with ID {item_id} not found.")
+        await self.db.delete(item)
+        await self.db.commit()
+        # return None
