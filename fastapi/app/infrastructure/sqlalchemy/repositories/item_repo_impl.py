@@ -82,28 +82,40 @@ class SQLAlchemyItemRepository(ItemRepository):
 
     async def update(self, item: Item) -> None:
         # Itemの更新に使う
-        db_item = await self.db.get(ItemORM, item.id)
+        # まず既存のアイテムを関係データと一緒に取得
+        result = await self.db.execute(
+            select(ItemORM)
+            .options(selectinload(ItemORM.categories))
+            .filter(ItemORM.item_id == item.id)
+        )
+        db_item = result.scalar_one_or_none()
+         
         if db_item:
             db_item.item_name = item.name
             
             # カテゴリの更新処理
-            if item.category_ids:
-                result = await self.db.execute(
+            if item.category_ids is not None and len(item.category_ids) > 0:
+                # 新しいカテゴリを取得
+                category_result = await self.db.execute(
                     select(CategoryORM).filter(
                         CategoryORM.category_id.in_(item.category_ids)
                     )
                 )
-                categories = result.scalars().all()
+                categories = list(category_result.scalars().all())
                 db_item.categories = categories
+                # エンティティの状態を更新
+                item.category_ids = [cat.category_id for cat in categories]
             else:
+                # category_idsがNoneまたは空リストの場合、すべてのカテゴリを削除
                 db_item.categories = []
-                
+                # エンティティの状態を更新（一貫性のため空リストに統一）
+                item.category_ids = []
+            
             await self.db.commit()
 
     async def delete(self, item_id: int) -> Item | None:
         # Itemの削除に使う
         item = await self.db.get(ItemORM, item_id)
-        print("----item=", item)
         if item is None:
             raise ValueError(f"Item with ID {item_id} not found.")
         await self.db.delete(item)
