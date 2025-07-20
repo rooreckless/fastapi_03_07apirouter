@@ -27,6 +27,7 @@ services:
       - .envs/local/postgres
     volumes:
       - fastapi01_postgres_data:/var/lib/postgresql/data
+      - ./postgres/initdb:/docker-entrypoint-initdb.d
     # context: ./postgres ←必要あればカスタムイメージに切替可能
 
 volumes:
