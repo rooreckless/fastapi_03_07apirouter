@@ -1,7 +1,7 @@
 # ②抽象リポジトリクラス
 # app/repository/item_repository.py
 from abc import ABC, abstractmethod
-from app.domain.entities.item import Item    #  ①のエンティティに依存
+from app.domain.items import Item    #  ①のエンティティに依存
 
 class ItemRepository(ABC):
     @abstractmethod

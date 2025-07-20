@@ -3,7 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.infrastructure.sqlalchemy.models.item_orm import ItemORM
-from app.domain.entities.item import Item
+from app.domain.items import Item
 from app.repository.item_repository import ItemRepository  # ②の抽象リポジトリ
 
 

@@ -1,6 +1,6 @@
 # ③ユースケース
 from app.repository.category_repository import CategoryRepository
-from app.domain.entities.category import Category
+from app.domain.category import Category
 
 class GetCategoryUseCase:
     def __init__(self, repo: CategoryRepository):

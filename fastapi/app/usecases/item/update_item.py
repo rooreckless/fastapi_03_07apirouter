@@ -1,6 +1,6 @@
 # ③ユースケース
 # app/usecases/item/update_item.py
-from app.domain.entities.item import Item
+from app.domain.items import Item
 from app.repository.item_repository import ItemRepository
 
 class UpdateItemUseCase:

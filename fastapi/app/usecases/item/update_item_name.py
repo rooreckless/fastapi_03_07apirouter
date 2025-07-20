@@ -1,7 +1,7 @@
 # ③ユースケース
 # app/usecases/item/update_item_name.py
 from app.repository.item_repository import ItemRepository
-from app.domain.entities.item import Item
+from app.domain.items import Item
 
 class UpdateItemNameUseCase:
     def __init__(self, repo: ItemRepository):

@@ -1,6 +1,6 @@
 # ③ユースケース
 from app.repository.item_repository import ItemRepository
-from app.domain.entities.item import Item
+from app.domain.items import Item
 
 class GetItemUseCase:
     def __init__(self, repo: ItemRepository):

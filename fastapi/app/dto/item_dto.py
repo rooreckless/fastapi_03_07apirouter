@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 class ItemBase(BaseModel):
     item_name: str
-    category_id: int
+    category_id: int | None
 
 class ItemCreateDTO(ItemBase):
     pass

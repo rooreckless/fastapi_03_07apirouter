@@ -3,7 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
-from app.domain.entities.category import Category
+from app.domain.category import Category
 from app.repository.category_repository import CategoryRepository # ②の抽象リポジトリ
 
 class SQLAlchemyCategoryRepository(CategoryRepository):
