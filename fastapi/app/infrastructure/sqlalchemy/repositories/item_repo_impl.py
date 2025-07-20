@@ -14,7 +14,7 @@ class SQLAlchemyItemRepository(ItemRepository):
 
     async def save(self, item: Item) -> None:
         # Itemの追加など保存時に使う
-        orm = ItemORM(item_name=item.name, category_id=item.category_id)
+        orm = ItemORM(item_id=item.id,item_name=item.name, category_id=item.category_id)
         self.db.add(orm)
         await self.db.commit()
         await self.db.refresh(orm)
@@ -35,6 +35,16 @@ class SQLAlchemyItemRepository(ItemRepository):
             return None
         return Item(item_id=row.item_id, name=row.item_name, category_id=row.category_id)
     
+    async def next_identifier(self) -> int:
+        # アイテムのIDを生成するためのメソッド
+        # 最新のID値(=itemテーブルの最大のid値)を持つレコードを取得
+        result = await self.db.execute(select(ItemORM.item_id).order_by(ItemORM.item_id.desc()).limit(1))
+        # そのレコードのID値を取得
+        row = result.scalar_one_or_none()
+        # もしレコードが存在しない場合は1を返す
+        # 存在する場合はそのID値に1を足して返す
+        return (row + 1) if row is not None else 1
+
     async def update(self, item: Item) -> None:
         # Itemの更新に使う
         db_item = await self.db.get(ItemORM, item.id)

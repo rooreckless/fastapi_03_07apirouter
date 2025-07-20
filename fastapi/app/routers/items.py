@@ -41,7 +41,6 @@ def get_delete_uc(repo=Depends(get_item_repo)):
 @router.post("/", response_model=ItemReadDTO)
 async def create(dto: ItemCreateDTO,
                  uc: CreateItemUseCase = Depends(get_create_uc)):
-    print("--dto--",dto)
     item = await uc.execute(dto.item_name, dto.category_id)
     return ItemReadDTO(item_id=item.id, item_name=item.name, category_id=item.category_id)
 
