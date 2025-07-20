@@ -26,24 +26,31 @@ def get_get_uc(repo=Depends(get_category_repo)):
 def get_update_uc(repo=Depends(get_category_repo)):
     return UpdateCategoryUseCase(repo)
 
+# エンドポイント
+
+
 @router.post("/", response_model=CategoryReadDTO)
 async def create(dto: CategoryCreateDTO,
                  uc: CreateCategoryUseCase = Depends(get_create_uc)):
     category = await uc.execute(dto.category_name)
     return CategoryReadDTO(category_id=category.id, category_name=category.name)
 
+
 @router.get("/", response_model=list[CategoryReadDTO])
 async def list_all(uc: ListCategoriesUseCase = Depends(get_list_uc)):
     categories = await uc.execute()
     return [CategoryReadDTO(category_id=c.id, category_name=c.name) for c in categories]
 
+
 @router.get("/{category_id}", response_model=CategoryReadDTO)
-async def get_category(category_id: int,
-                   uc: GetCategoryUseCase = Depends(get_get_uc)):
+async def get_category(category_id: int, 
+                       uc: GetCategoryUseCase = Depends(get_get_uc)):
     category = await uc.execute(category_id)
     if category is None:
         raise HTTPException(status_code=404, detail="Category not found")
     return CategoryReadDTO(category_id=category.id, category_name=category.name)
+
+
 @router.put("/{category_id}", response_model=CategoryReadDTO)
 async def update_category(category_id: int,
                       dto: CategoryUpdateDTO,
