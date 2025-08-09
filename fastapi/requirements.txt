@@ -13,3 +13,8 @@ python-dotenv
 # --httpリクエスト関連--
 # requests  # fastapi内部から、httpリクエストがしたいなら必要
 httpx     # 上記requestsの非同期が使えるようにするためのもの
+
+#--ログイン関連--
+passlib[bcrypt] #パスワードハッシュ化ライブラリ
+python-jose[cryptography] #JWTトークンの生成・検証ライブラリ
+python-multipart #ファイルアップロード用
