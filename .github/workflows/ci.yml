@@ -68,16 +68,18 @@ jobs:
           docker compose --profile qa run --rm
           -e PYTHONPATH=/fastapi
           -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
+          -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
           test /fastapi/.venv/bin/pytest -q
-          --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml
+          --cov=app --cov-report=term-missing --cov-report=xml:/ci_artifacts/coverage.xml
 
       - name: Upload coverage (artifact)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml
-          path: fastapi/coverage.xml
-          if-no-files-found: ignore
+          path: ci_artifacts/coverage.xml
+          if-no-files-found: error   # ← 見つからなければ失敗にして気づきやすく
+
 
       - name: Teardown
         if: always()
