@@ -25,7 +25,7 @@ services:
       context: .
       dockerfile: ./postgres/Dockerfile/local/Dockerfile
     container_name:
-      postgresql
+      postgres
     ports:
       - "5432:5432"
     env_file:
