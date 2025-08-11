@@ -82,8 +82,7 @@ jobs:
           name: coverage
           path: |
             ci_artifacts/coverage.xml
-            ci_artifacts/htmlcov   # ← 見つからなければ失敗にして気づきやすく
-
+            ci_artifacts/htmlcov
 
       - name: Teardown
         if: always()
