@@ -3,12 +3,17 @@ services:
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
+      args:
+        INCLUDE_DEV: "false"   # ← このコンテナについてdockerfileをビルドするとき「INCLUDE_DEV==false」としてビルドする = 本番/アプリ用は dev を入れない
     container_name:
       fastapi
     ports:
       - "8000:8000"
     volumes:
-      - ./fastapi:/fastapi
+      - ./fastapi/app:/fastapi/app  # ← ここ重要：/fastapi 丸ごとはマウントしない
+                                    #　- ./fastapi:/fastapiで丸ごとマウントすると、「docker compose build fastapiコマンドでビルド」して作った /fastapi/.venv（依存一式や uvicorn 実体）が見えなくなります（ホスト側には .venv が無いはず）。
+                                    # 結果 → コンテナ起動時に uvicorn が PATH に無くて失敗、や、ライブラリ ImportError が起きる。
+                                    # 逆に - ./fastapi/app:/fastapi/app のように コードだけをマウントすれば、イメージ側に作られた .venv は生きたまま、コード変更だけが即時反映されます。これが「重要」と言った理由です。
     env_file:
       - .envs/local/postgres
     depends_on:
@@ -29,6 +34,43 @@ services:
       - fastapi01_postgres_data:/var/lib/postgresql/data
       - ./postgres/initdb:/docker-entrypoint-initdb.d
     # context: ./postgres ←必要あればカスタムイメージに切替可能
+  ruff:
+    profiles: ["qa"]
+    build:
+      context: .
+      dockerfile: ./fastapi/Dockerfile/local/Dockerfile
+      args:
+        INCLUDE_DEV: "true"   # ← このコンテナについてdockerfileをビルドするとき「INCLUDE_DEV==true」としてビルドする
+    container_name:
+      ruff-fastapi
+    working_dir: /fastapi
+    volumes:
+      - ./fastapi/app:/fastapi/app
+      - ./fastapi/pyrightconfig.json:/fastapi/pyrightconfig.json # <- basedpyrightの設定ファイルの読み込みのため
+    command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--watch"]
+    # 自動修正したいなら:
+    # command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--fix"]
+    # フォーマット検査も分けて走らせたいなら:
+    # command: ["/fastapi/.venv/bin/ruff", "format", "--check", "/fastapi/app"]
+  test:
+    profiles: ["qa"]
+    build:
+      context: .
+      dockerfile: ./fastapi/Dockerfile/local/Dockerfile
+      args:
+        INCLUDE_DEV: "true"   # ← このコンテナについてdockerfileをビルドするとき「INCLUDE_DEV==true」としてビルドする
+    container_name:
+      pytest-fastapi
+    working_dir: /fastapi
+    env_file:
+      - .envs/local/postgres
+    environment:
+      PYTHONPATH: /fastapi
+    depends_on:
+      - postgres
+    volumes:
+      - ./fastapi/app:/fastapi/app
+      - ./fastapi/tests:/fastapi/tests
 
 volumes:
   fastapi01_postgres_data:

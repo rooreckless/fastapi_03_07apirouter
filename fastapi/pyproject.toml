@@ -1,0 +1,42 @@
+[project]
+name = "fastapi-app"              # このプロジェクト名(あまり意味はないか)
+version = "0.1.0"
+description = "FastAPI app managed by uv"
+requires-python = ">=3.11,<3.13"  # このプロジェクトで使うpythonバージョンの指定(dockerでやるので意味はほぼない。)
+
+# ---導入するパッケージの設定---
+dependencies = [
+  "fastapi",
+  "pydantic",               # FastAPIの型宣言・バリデーションで使用（FastAPI依存）
+  # "pydantic-core",        # pydantic が内部で引くので通常は不要
+  "uvicorn[standard]",      # apサーバ(GunicornがWSGIサーバーだったが、これのASGI版 起動コマンドがuvicorn main:app --reloadなど)
+                            # standardを指定した理由はhttps://zenn.dev/ryuu/scraps/139081511afdb4　つまり、uvicornだけでなく、uvloopやwebsocketsなどもrequirements.txtに記述したのと一緒にする。
+  # --DB関連--
+  "sqlalchemy",             #ORM
+  # alembic                 #sqlalchemy用マイグレーション # ←DBeaverでddlのためのsqlファイルを作成するようになったのでいらなくなった。
+  "psycopg2-binary",
+  "asyncpg",                #psycopg2とは違い、非同期でposgrresを使うためのドライバ
+  "python-dotenv",
+  # --httpリクエスト関連--
+  # requests                # fastapi内部から、httpリクエストがしたいなら必要
+  "httpx",                  # 上記requestsの非同期が使えるようにするためのもの
+  #--ログイン関連--
+  "passlib[bcrypt]",        # パスワードハッシュ化ライブラリ
+  "python-jose[cryptography]",  #JWTトークンの生成・検証ライブラリ
+  "python-multipart",       #ファイルアップロード用
+]
+
+[dependency-groups]
+# ---導入するパッケージの設定(devの場合のみ使用)---
+dev = [
+  "ruff",
+  "pytest",
+  "pytest-cov",
+  # CIで型チェックするなら（Node不要で済ませたい場合でpyrightの代わりにbasedpyright）
+  "basedpyright",
+]
+
+#---リンター、フォーマッタであるruffのための設定箇所---
+[tool.ruff]
+line-length = 200
+target-version = "py311"
