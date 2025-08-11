@@ -33,6 +33,12 @@ services:
     volumes:
       - fastapi01_postgres_data:/var/lib/postgresql/data
       - ./postgres/initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-appdb} -h localhost"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
     # context: ./postgres ←必要あればカスタムイメージに切替可能
   ruff:
     profiles: ["qa"]
