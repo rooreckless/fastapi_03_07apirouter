@@ -67,7 +67,7 @@ jobs:
         run: >
           docker compose --profile qa run --rm
           -e PYTHONPATH=/fastapi
-          -e DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
+          -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
           test /fastapi/.venv/bin/pytest -q
           --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml
 
