@@ -120,7 +120,7 @@ async def update_name_dto(
 async def delete_item(item_id: int, uc: DeleteItemUseCase = Depends(get_delete_uc)):
     try:
         await uc.execute(item_id)
-    except ValueError as e:
+    except ValueError:
         raise HTTPException(status_code=404, detail="str(e)")
     # なにも返さなくていい。(他のユースケースだと、レコードをDTOで返すが、削除だと不要)
     return None

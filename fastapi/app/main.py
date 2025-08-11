@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from app.routers.categories import router as category_router
 from app.routers.items import router as item_router
 
