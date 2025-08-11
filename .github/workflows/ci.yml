@@ -1,0 +1,80 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+    branches: [ develop ]     # ← develop 向けPRで発火
+  workflow_dispatch:          # ← 手動実行も可（任意）
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: ci-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # dev 依存入りの ruff/test イメージをビルド
+      - name: Build images (ruff, test)
+        run: docker compose --profile qa build ruff test
+
+      - name: Ruff check
+        run: docker compose --profile qa run --rm ruff ruff check /fastapi/app
+
+      - name: Type check (basedpyright)
+        run: docker compose --profile qa run --rm ruff basedpyright
+
+      - name: Create CI env file
+        run: |
+          mkdir -p .envs/local
+          cat > .envs/local/postgres <<'EOF'
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          EOF
+
+      - name: Start DB
+        run: docker compose up -d postgres
+        # 環境変数を .envs/local/postgres で読ませるなら特に何も不要
+        # もし .env をコミットしていない場合は、env: で渡す
+        # env:
+        #   POSTGRES_DB: appdb
+        #   POSTGRES_USER: appuser
+        #   POSTGRES_PASSWORD: apppass
+
+      - name: Wait for DB healthy
+        run: |
+          for i in $(seq 1 30); do
+            if docker compose ps postgres | grep -q "healthy"; then exit 0; fi
+            sleep 2
+          done
+          echo "Postgres not healthy"
+          docker compose logs postgres
+          exit 1
+      # pytest 実行時、アプリ側の接続文字列も付与
+      - name: Pytest (with coverage)
+        run: >
+          docker compose --profile qa run --rm
+          -e PYTHONPATH=/fastapi
+          -e DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
+          test /fastapi/.venv/bin/pytest -q
+          --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml
+
+      - name: Upload coverage (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: fastapi/coverage.xml
+          if-no-files-found: ignore
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
