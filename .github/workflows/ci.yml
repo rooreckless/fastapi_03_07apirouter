@@ -64,13 +64,15 @@ jobs:
           exit 1
       # pytest 実行時、アプリ側の接続文字列も付与
       - name: Pytest (with coverage)
-        run: >
-          docker compose --profile qa run --rm
-          -e PYTHONPATH=/fastapi
-          -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
-          -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
-          test /fastapi/.venv/bin/pytest -q
-          --cov=app --cov-report=term-missing --cov-report=xml:/ci_artifacts/coverage.xml
+        run: |
+          mkdir -p ci_artifacts
+          docker compose --profile qa run --rm \
+            -e PYTHONPATH=/fastapi \
+            -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }} \
+            -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
+            test /fastapi/.venv/bin/pytest -q \
+              --cov=app --cov-report=term-missing \
+              --cov-report=xml:/ci_artifacts/coverage.xml
 
       - name: Upload coverage (artifact)
         if: always()
