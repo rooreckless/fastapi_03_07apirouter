@@ -28,6 +28,10 @@ jobs:
       - name: Ruff check
         run: docker compose --profile qa run --rm ruff ruff check /fastapi/app
 
+      # デバッグ用(basedpyrightの設定ファイルpyright.jsonが読めているかどうか)
+      - name: Type check (basedpyright, verbose)
+        run: docker compose --profile qa run --rm ruff basedpyright --verbose | head -n 40
+
       - name: Type check (basedpyright)
         run: docker compose --profile qa run --rm ruff basedpyright
 
