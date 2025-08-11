@@ -71,16 +71,18 @@ jobs:
             -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }} \
             -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
             test /fastapi/.venv/bin/pytest -q \
-              --cov=app --cov-report=term-missing \
-              --cov-report=xml:/ci_artifacts/coverage.xml
-
+              --cov=app \
+              --cov-report=term-missing \
+              --cov-report=xml:/ci_artifacts/coverage.xml \
+              --cov-report=html:/ci_artifacts/htmlcov
       - name: Upload coverage (artifact)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-xml
-          path: ci_artifacts/coverage.xml
-          if-no-files-found: error   # ← 見つからなければ失敗にして気づきやすく
+          name: coverage
+          path: |
+            ci_artifacts/coverage.xml
+            ci_artifacts/htmlcov   # ← 見つからなければ失敗にして気づきやすく
 
 
       - name: Teardown
