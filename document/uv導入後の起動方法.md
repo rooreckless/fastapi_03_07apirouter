@@ -136,6 +136,13 @@ docker compose --profile test run --rm ruff-fastapi basedpyright app
 これに対応するため、テスト開始やruff、basedpyrightの実行手順を分割します。
 
 ```shell
+# 0-1 必要な時はuv lockをしてください
+cd fastapi
+uv lock
+# 0-2 ビルド
+cd ../
+docker compose build --no-cache fastapi
+
 # 1 通常のfastapiとpostgresの起動
 docker compose up -d
 # 2 profile = devのサービスをバックグラウンドで起動
@@ -144,6 +151,7 @@ docker compose --profile test up -d
 
 # 3 テストをしたい場合、
 docker compose exec pytest-fastapi pytest tests
+
 # 3-2 テスト + cov + cov-branch + レポート(コンソール,xml,html)+ q
 docker compose exec pytest-fastapi pytest tests -q \
   --cov=app --cov-branch \
@@ -151,7 +159,7 @@ docker compose exec pytest-fastapi pytest tests -q \
   --cov-report=xml:/ci_artifacts/coverage.xml \
   --cov-report=html:/ci_artifacts/htmlcov
 # ↑ただし、生成されるカバレッジレポートはroot権限でないと編集、削除できない
-# その場合は、sudo chmod -R 777 ci_argifactsを実行すること
+# その場合は、sudo chmod -R 777 ci_artifactsを実行すること
 
 
 ## 4 ruffによるコードチェック
