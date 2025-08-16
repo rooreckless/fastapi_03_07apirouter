@@ -7,7 +7,7 @@ on:
   workflow_dispatch:          # ← 手動実行も可（任意）
 
 jobs:
-  qa:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     concurrency:
@@ -15,26 +15,27 @@ jobs:
       cancel-in-progress: true
 
     steps:
+      # --- リポジトリからのソースコードのチェックアウト=ダウンロード ---
       - name: Checkout
         uses: actions/checkout@v4
-
+      # ---docker/setup-buildx-actionについては、https://qiita.com/_kei_s/items/15c067090d5142648aac#dockersetup-buildx-action---
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
       # dev 依存入りの ruff/test イメージをビルド
       - name: Build images (ruff, test)
-        run: docker compose --profile qa build ruff test
+        run: docker compose --profile test build ruff-fastapi pytest-fastapi
 
       - name: Ruff check
-        run: docker compose --profile qa run --rm ruff ruff check /fastapi/app
+        run: docker compose --profile test run --rm ruff-fastapi ruff check /fastapi/app
 
-      # デバッグ用(basedpyrightの設定ファイルpyright.jsonが読めているかどうか)
-      - name: Type check (basedpyright, verbose)
-        run: docker compose --profile qa run --rm ruff basedpyright --verbose | head -n 40
+      # # --- デバッグ用(basedpyrightの設定ファイルpyright.jsonが読めているかどうか) ---
+      # - name: Type check (basedpyright, verbose)
+      #   run: docker compose --profile test run --rm ruff-fastapi basedpyright --verbose | head -n 40
 
-      - name: Type check (basedpyright)
-        run: docker compose --profile qa run --rm ruff basedpyright
-      # .envsの環境変数をシークレットから作成
+      # - name: Type check (basedpyright)
+      #   run: docker compose --profile test run --rm ruff basedpyright
+      # --- .envsの環境変数をシークレットから作成 ---
       - name: Create CI env file
         run: |
           mkdir -p .envs/local
@@ -62,15 +63,15 @@ jobs:
           echo "Postgres not healthy"
           docker compose logs postgres
           exit 1
-      # pytest 実行時、アプリ側の接続文字列も付与
+      # --- pytest 実行時、アプリ側の接続文字列も付与 ---
       - name: Pytest (with coverage)
         run: |
           mkdir -p ci_artifacts
-          docker compose --profile qa run --rm \
+          docker compose --profile test run --rm \
             -e PYTHONPATH=/fastapi \
             -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }} \
             -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
-            test /fastapi/.venv/bin/pytest -q \
+            pytest-fastapi /fastapi/.venv/bin/pytest -q \
               --cov=app \
               --cov-report=term-missing:skip-covered \
               --cov-report=xml:/ci_artifacts/coverage.xml \
@@ -84,27 +85,7 @@ jobs:
           path: |
             ci_artifacts/coverage.xml
             ci_artifacts/htmlcov
-      # XML→Markdown要約（ジョブログにも出しつつファイル生成）
-      #    XMLが無い場合に落とさないため、存在チェックを入れてます
-      - name: Coverage Summary (from cobertura XML)
-        if: ${{ always() && hashFiles('ci_artifacts/coverage.xml') != '' }}
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: ci_artifacts/coverage.xml
-          format: markdown
-          output: both         # ログとファイル両方
-          badge: true          # バッジ付きにしたい場合お好みで
-          # thresholds: '80 90' # 失敗判定に使いたい場合のお好み
-      # --- PRに“貼り直し”コメント（同一リポからのPRのみ） ---
-      # フォークPRはGITHUB_TOKENの権限が制限されるためコメントはスキップ
-      - name: Comment coverage on PR
-        if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && hashFiles('code-coverage-results.md') != '' }}
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: coverage      # 複数系にしたいときは見出しを変える
-          recreate: true        # 毎回差し替え（履歴を汚さない）
-          path: code-coverage-results.md
-          
+      # ---終了処理---
       - name: Teardown
         if: always()
         run: docker compose down -v

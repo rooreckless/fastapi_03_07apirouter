@@ -40,8 +40,8 @@ services:
       retries: 30
       start_period: 5s
     # context: ./postgres ←必要あればカスタムイメージに切替可能
-  ruff:
-    profiles: ["qa"]
+  ruff-fastapi:
+    profiles: ["test"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
@@ -58,8 +58,8 @@ services:
     # command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--fix"]
     # フォーマット検査も分けて走らせたいなら:
     # command: ["/fastapi/.venv/bin/ruff", "format", "--check", "/fastapi/app"]
-  test:
-    profiles: ["qa"]
+  pytest-fastapi:
+    profiles: ["test"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
