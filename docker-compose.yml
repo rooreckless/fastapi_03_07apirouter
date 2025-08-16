@@ -1,5 +1,6 @@
 services:
   fastapi:
+    profiles: ["dev"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
@@ -21,6 +22,7 @@ services:
     
   postgres:
     # image: postgres:15
+    profiles: ["dev"]
     build:
       context: .
       dockerfile: ./postgres/Dockerfile/local/Dockerfile
@@ -40,7 +42,7 @@ services:
       retries: 30
       start_period: 5s
   ruff-fastapi:
-    profiles: ["test"]
+    profiles: ["dev","test"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
@@ -59,7 +61,7 @@ services:
     # フォーマット検査も分けて走らせたいなら:
     # command: ["/fastapi/.venv/bin/ruff", "format", "--check", "/fastapi/app"]
   pytest-fastapi:
-    profiles: ["test"]
+    profiles: ["dev","test"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
@@ -75,8 +77,9 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./fastapi/app:/fastapi/app
-      - ./fastapi/tests:/fastapi/tests
-
+      - ./fastapi/app:/fastapi/app     # ← ローカルのfastapi内のソースコードをマウント
+      - ./fastapi/tests:/fastapi/tests # ← ローカルのfastapi内のテストコードをマウント　
+      - ./ci_artifacts:/ci_artifacts   # ← テスト後のカバレッジレポート出力先を常に共有
+    command: sleep infinity
 volumes:
   fastapi01_postgres_data:

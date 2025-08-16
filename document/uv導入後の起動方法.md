@@ -41,13 +41,13 @@ fastapi起動後に、テストやruffチェックがしたい場合は以下の
 
 ### テストの実行
 
-- テスト実行 : `docker compose --profile test run --rm pytest-fastapi pytest tests`
+- テスト実行 : `docker compose --profile test run --rm pytest-fastapi pytest tests --cache-clear`
   - これはtestケースファイルの配置を`fastapi/tests`においているからできること。
   - コマンドは`docker compose --profile test run --rm pytest-fastapi`と、`pytest`で別れている。つまり、`docker-compose.yml`では`profile`が、`pytest-fastapi`サービスに指定されていて、それが、`test`であり、「このコンテナで、`pytest`コマンドを実行し、実行後はコンテナが自動終了」の意味。`pytest`コマンドの意味は、文字通り「pytestによるテストを行う」のだが、その際のテストケースファイルディレクトリは、「引数で`tests`ディレクトリを指定」の意味である。
 
 ### テスト時にカバレッジ計測するには
 
-- カバレッジレポートもついたテストをしたいなら、`docker compose --profile test run --rm pytest-fastapi pytest tests --cov=app --cov-branch --cov-report=term-missing:skip-covered`
+- カバレッジレポートもついたテストをしたいなら、`docker compose --profile test run --rm pytest-fastapi pytest tests --cache-clear --cov=app --cov-branch --cov-report=term-missing:skip-covered`
     - コマンドの構造は先ほどの`docker compose --profile test run --rm pytest-fastapi pytest tests`の内容に追加して、`--cov=app --cov-branch --cov-report=term-missing:skip-covered`がついている状態。
     - 意味は今までの内容に追加して、「カバレッジ計測と、その計測の仕方、カバレッジレポートの作成とその形式」を意味している。
       - つまり「`tests`ディレクトリの内容でテストする」の後に、「`--cov=app`で、カバレッジ計測してもらいたいが、その際の対象のソースコードは`app`ディレクトリ内のもの」+「`--cov-branch`でブランチカバレッジも計測したい」+「`--cov-report`でカバレッジレポートの設定については、`term-missing`でテストでカバーできていない対象のソースコードの行番号の記載。ただし`:skip-covered`で、100%カバーできているなら、対象のソースコードをレポートから外す(フルカバーできているなら記載する意味がないから)」
@@ -108,8 +108,8 @@ docker compose --profile test run --rm pytest-fastapi pytest tests \
 docker compose --profile test run --rm pytest-fastapi pytest tests -q \
   --cov=app --cov-branch \
   --cov-report=term-missing:skip-covered \
-  --cov-report=xml:coverage.xml \
-  --cov-report=html:htmlcov
+  --cov-report=xml:/ci_artifacts/coverage.xml \
+  --cov-report=html:/ci_artifacts/htmlcov
 
 
 ## ruffによるコードチェック
@@ -126,6 +126,34 @@ docker compose --profile test run --rm ruff-fastapi ruff format /fastapi/app
 ## pyrightによる型チェック
 docker compose --profile test run --rm ruff-fastapi basedpyright app
 ```
+
+## 何度もテストしたり、ruffチェックするために
+
+ローカル開発では、ソースコードを編集するたびにテストを実施したり、ruffチェックやbasedpyrightのチェックをしたいはずです。
+
+つまり、上記の`docker compose --profile test run --rm`は「最初の1回目は成功」するのですが、2回目を実行すると失敗するケースがあります。
+
+これに対応するため、テスト開始やruff、basedpyrightの実行手順を分割します。
+
+```shell
+# 1 profile = devのサービスをバックグラウンドで起動
+#(devのprofileにはfastapi, postgres, ruff-fastapi, pytest-fastapiが所属している)
+docker compose --profile dev up -d
+
+# 2 テストをしたい場合、
+docker compose exec pytest-fastapi pytest tests
+# 2-2 テスト + cov + cov-branch + レポート(コンソール,xml,html)+ q
+docker compose exec pytest-fastapi pytest tests -q \
+  --cov=app --cov-branch \
+  --cov-report=term-missing:skip-covered \
+  --cov-report=xml:/ci_artifacts/coverage.xml \
+  --cov-report=html:/ci_artifacts/htmlcov
+
+
+# 4 終了
+docker compose --profile dev down
+```
+
 
 ## ruffとpyright(=basedpyright)の違い
 

@@ -74,7 +74,6 @@ jobs:
           docker compose --profile test run --rm \
             -e PYTHONPATH=/fastapi \
             -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }} \
-            -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
             pytest-fastapi /fastapi/.venv/bin/pytest tests -q \
               --cov=app --cov-branch \
               --cov-report=term-missing:skip-covered \
