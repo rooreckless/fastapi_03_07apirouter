@@ -62,9 +62,22 @@ jobs:
           echo "Postgres not healthy"
           docker compose logs postgres
           exit 1
-      # pytest 実行時、アプリ側の接続文字列も付与
-      - name: Pytest (with coverage)
+      # # pytest 実行時、アプリ側の接続文字列も付与
+      # - name: Pytest (with coverage)
+      #   run: |
+      #     mkdir -p ci_artifacts
+      #     docker compose --profile qa run --rm \
+      #       -e PYTHONPATH=/fastapi \
+      #       -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }} \
+      #       -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
+      #       test /fastapi/.venv/bin/pytest -q \
+      #         --cov=app \
+      #         --cov-report=term-missing:skip-covered \
+      #         --cov-report=xml:/ci_artifacts/coverage.xml \
+      #         --cov-report=html:/ci_artifacts/htmlcov
+      - name: Pytest (with coverage) + capture term report
         run: |
+          set -o pipefail
           mkdir -p ci_artifacts
           docker compose --profile qa run --rm \
             -e PYTHONPATH=/fastapi \
@@ -74,15 +87,24 @@ jobs:
               --cov=app \
               --cov-report=term-missing:skip-covered \
               --cov-report=xml:/ci_artifacts/coverage.xml \
-              --cov-report=html:/ci_artifacts/htmlcov
-      - name: Upload coverage (artifact)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: |
-            ci_artifacts/coverage.xml
-            ci_artifacts/htmlcov
+              --cov-report=html:/ci_artifacts/htmlcov \
+            2>&1 | tee ci_artifacts/coverage_term.txt
+
+          {
+            echo '### Coverage (term-missing, skip-covered)'
+            echo
+            echo '```text'
+            cat ci_artifacts/coverage_term.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+            - name: Upload coverage (artifact)
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                name: coverage
+                path: |
+                  ci_artifacts/coverage.xml
+                  ci_artifacts/htmlcov
 
       - name: Teardown
         if: always()
