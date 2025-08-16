@@ -34,7 +34,7 @@ jobs:
 
       - name: Type check (basedpyright)
         run: docker compose --profile qa run --rm ruff basedpyright
-
+      # .envsの環境変数をシークレットから作成
       - name: Create CI env file
         run: |
           mkdir -p .envs/local
@@ -43,7 +43,7 @@ jobs:
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           EOF
-
+      # DB起動
       - name: Start DB
         run: docker compose up -d postgres
         # 環境変数を .envs/local/postgres で読ませるなら特に何も不要
@@ -75,7 +75,7 @@ jobs:
               --cov-report=term-missing:skip-covered \
               --cov-report=xml:/ci_artifacts/coverage.xml \
               --cov-report=html:/ci_artifacts/htmlcov
-      
+      # --- カバレッジのアーティファクトを残す=アップロード（HTML/XML） ---
       - name: Upload coverage (artifact)
         if: always()
         uses: actions/upload-artifact@v4
@@ -84,7 +84,7 @@ jobs:
           path: |
             ci_artifacts/coverage.xml
             ci_artifacts/htmlcov
-      # 2) XML→Markdown要約（ジョブログにも出しつつファイル生成）
+      # XML→Markdown要約（ジョブログにも出しつつファイル生成）
       #    XMLが無い場合に落とさないため、存在チェックを入れてます
       - name: Coverage Summary (from cobertura XML)
         if: ${{ always() && hashFiles('ci_artifacts/coverage.xml') != '' }}
@@ -95,14 +95,16 @@ jobs:
           output: both         # ログとファイル両方
           badge: true          # バッジ付きにしたい場合お好みで
           # thresholds: '80 90' # 失敗判定に使いたい場合のお好み
-      # 3) PRに“貼り直し”コメントで投稿（PR時のみ、有無チェック付き）
+      # --- PRに“貼り直し”コメント（同一リポからのPRのみ） ---
+      # フォークPRはGITHUB_TOKENの権限が制限されるためコメントはスキップ
       - name: Comment coverage on PR
-        if: ${{ github.event_name == 'pull_request' && hashFiles('code-coverage-results.md') != '' }}
+        if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && hashFiles('code-coverage-results.md') != '' }}
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: coverage      # 複数系にしたいときは見出しを変える
           recreate: true        # 毎回差し替え（履歴を汚さない）
           path: code-coverage-results.md
+          
       - name: Teardown
         if: always()
         run: docker compose down -v
