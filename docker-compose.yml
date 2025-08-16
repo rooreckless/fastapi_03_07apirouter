@@ -39,7 +39,6 @@ services:
       timeout: 3s
       retries: 30
       start_period: 5s
-    # context: ./postgres ←必要あればカスタムイメージに切替可能
   ruff-fastapi:
     profiles: ["test"]
     build:
@@ -53,9 +52,10 @@ services:
     volumes:
       - ./fastapi/app:/fastapi/app
       - ./fastapi/pyrightconfig.json:/fastapi/pyrightconfig.json # <- basedpyrightの設定ファイルの読み込みのため
+    # ↓のcommandの内容は、ruff checkを自動実行(=監視)するためのもの
     command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--watch"]
-    # 自動修正したいなら:
-    # command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--fix"]
+    # 自動修正もしたいなら--fixもつける:
+    # command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--watch", "--fix"]
     # フォーマット検査も分けて走らせたいなら:
     # command: ["/fastapi/.venv/bin/ruff", "format", "--check", "/fastapi/app"]
   pytest-fastapi:

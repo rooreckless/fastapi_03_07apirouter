@@ -54,6 +54,7 @@ jobs:
         #   POSTGRES_USER: appuser
         #   POSTGRES_PASSWORD: apppass
 
+      # DBが起動完了するまで(healthyになるまで)待つ
       - name: Wait for DB healthy
         run: |
           for i in $(seq 1 30); do
@@ -64,6 +65,9 @@ jobs:
           docker compose logs postgres
           exit 1
       # --- pytest 実行時、アプリ側の接続文字列も付与 ---
+      # pytest-fastapiサービスのコンテナにカバレッジありでpytestを実行しレポートを出させる(コンソール+html+xml)
+      # -e はそのコンテナの環境変数設定用
+      # -v はそのコンテナにボリュームマウントさせてレポートをアップロードするためのもの
       - name: Pytest (with coverage)
         run: |
           mkdir -p ci_artifacts
@@ -71,8 +75,8 @@ jobs:
             -e PYTHONPATH=/fastapi \
             -e DATABASE_URL=postgresql+asyncpg://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }} \
             -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
-            pytest-fastapi /fastapi/.venv/bin/pytest -q \
-              --cov=app \
+            pytest-fastapi /fastapi/.venv/bin/pytest tests -q \
+              --cov=app --cov-branch \
               --cov-report=term-missing:skip-covered \
               --cov-report=xml:/ci_artifacts/coverage.xml \
               --cov-report=html:/ci_artifacts/htmlcov
