@@ -136,13 +136,15 @@ docker compose --profile test run --rm ruff-fastapi basedpyright app
 これに対応するため、テスト開始やruff、basedpyrightの実行手順を分割します。
 
 ```shell
-# 1 profile = devのサービスをバックグラウンドで起動
+# 1 通常のfastapiとpostgresの起動
+docker compose up -d
+# 2 profile = devのサービスをバックグラウンドで起動
 #(devのprofileにはfastapi, postgres, ruff-fastapi, pytest-fastapiが所属している)
-docker compose --profile dev up -d
+docker compose --profile test up -d
 
-# 2 テストをしたい場合、
+# 3 テストをしたい場合、
 docker compose exec pytest-fastapi pytest tests
-# 2-2 テスト + cov + cov-branch + レポート(コンソール,xml,html)+ q
+# 3-2 テスト + cov + cov-branch + レポート(コンソール,xml,html)+ q
 docker compose exec pytest-fastapi pytest tests -q \
   --cov=app --cov-branch \
   --cov-report=term-missing:skip-covered \

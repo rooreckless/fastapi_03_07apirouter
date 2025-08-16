@@ -1,6 +1,5 @@
 services:
   fastapi:
-    profiles: ["dev"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
@@ -22,7 +21,6 @@ services:
     
   postgres:
     # image: postgres:15
-    profiles: ["dev"]
     build:
       context: .
       dockerfile: ./postgres/Dockerfile/local/Dockerfile
@@ -42,7 +40,7 @@ services:
       retries: 30
       start_period: 5s
   ruff-fastapi:
-    profiles: ["dev","test"]
+    profiles: ["test"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
@@ -61,7 +59,7 @@ services:
     # フォーマット検査も分けて走らせたいなら:
     # command: ["/fastapi/.venv/bin/ruff", "format", "--check", "/fastapi/app"]
   pytest-fastapi:
-    profiles: ["dev","test"]
+    profiles: ["test"]
     build:
       context: .
       dockerfile: ./fastapi/Dockerfile/local/Dockerfile
