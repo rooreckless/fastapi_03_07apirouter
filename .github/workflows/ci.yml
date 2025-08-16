@@ -97,14 +97,14 @@ jobs:
             cat ci_artifacts/coverage_term.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-            - name: Upload coverage (artifact)
-              if: always()
-              uses: actions/upload-artifact@v4
-              with:
-                name: coverage
-                path: |
-                  ci_artifacts/coverage.xml
-                  ci_artifacts/htmlcov
+      - name: Upload coverage (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            ci_artifacts/coverage.xml
+            ci_artifacts/htmlcov
 
       - name: Teardown
         if: always()
