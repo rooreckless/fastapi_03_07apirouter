@@ -1,11 +1,14 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# DATABASE_URLがNoneの場合のデフォルト値を設定
+if DATABASE_URL is None:
+    raise ValueError("DATABASE_URL environment variable is not set")
+
 engine = create_async_engine(DATABASE_URL, echo=True)
-AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 # さまざまなユースケースから使われるDBのセッション開始と自動終了部分の共通化パーツとなる関数
 async def get_db():

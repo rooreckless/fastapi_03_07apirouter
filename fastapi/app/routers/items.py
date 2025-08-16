@@ -41,7 +41,8 @@ def get_delete_uc(repo=Depends(get_item_repo)):
 @router.post("/", response_model=ItemReadDTO)
 async def create(dto: ItemCreateDTO,
                  uc: CreateItemUseCase = Depends(get_create_uc)):
-    item = await uc.execute(dto.item_name, dto.category_ids)
+    category_ids = dto.category_ids or []
+    item = await uc.execute(dto.item_name, category_ids)
     return ItemReadDTO(item_id=item.id, item_name=item.name, category_ids=item.category_ids)
 
 @router.get("/", response_model=list[ItemReadDTO])
@@ -120,7 +121,7 @@ async def update_name_dto(
 async def delete_item(item_id: int, uc: DeleteItemUseCase = Depends(get_delete_uc)):
     try:
         await uc.execute(item_id)
-    except ValueError as e:
+    except ValueError:
         raise HTTPException(status_code=404, detail="str(e)")
     # なにも返さなくていい。(他のユースケースだと、レコードをDTOで返すが、削除だと不要)
     return None

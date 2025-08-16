@@ -1,0 +1,8 @@
+{
+  "typeCheckingMode": "basic",
+  "venvPath": "/fastapi",
+  "venv": ".venv",
+  "include": ["app"],
+  "exclude": ["**/__pycache__", "**/migrations"]
+}
+
