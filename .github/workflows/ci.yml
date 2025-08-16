@@ -72,7 +72,7 @@ jobs:
             -v "${{ github.workspace }}/ci_artifacts:/ci_artifacts" \
             test /fastapi/.venv/bin/pytest -q \
               --cov=app \
-              --cov-report=term-missing \
+              --cov-report=term-missing:skip-covered \
               --cov-report=xml:/ci_artifacts/coverage.xml \
               --cov-report=html:/ci_artifacts/htmlcov
       - name: Upload coverage (artifact)
