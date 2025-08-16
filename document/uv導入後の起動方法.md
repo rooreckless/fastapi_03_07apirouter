@@ -150,14 +150,32 @@ docker compose exec pytest-fastapi pytest tests -q \
   --cov-report=term-missing:skip-covered \
   --cov-report=xml:/ci_artifacts/coverage.xml \
   --cov-report=html:/ci_artifacts/htmlcov
+# ↑ただし、生成されるカバレッジレポートはroot権限でないと編集、削除できない
+# その場合は、sudo chmod -R 777 ci_argifactsを実行すること
 
 
-# 4 終了
-docker compose --profile dev down
+## 4 ruffによるコードチェック
+
+docker compose exec ruff-fastapi ruff check /fastapi/app
+
+## 4-2ruff 自動修正つき
+
+docker compose exec ruff-fastapi ruff check /fastapi/app --fix
+#　or
+docker compose exec ruff-fastapi ruff format /fastapi/app
+
+
+## 5 pyrightによる型チェック
+docker compose exec ruff-fastapi basedpyright app
+
+
+# 6 終了
+docker compose down
+docker compose --profile test down
 ```
 
 
-## ruffとpyright(=basedpyright)の違い
+## 【余談】ruffとpyright(=basedpyright)の違い
 
 ruffとpyright(=basedpyright)の違いは、
 
