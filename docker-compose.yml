@@ -51,6 +51,7 @@ services:
     working_dir: /fastapi
     volumes:
       - ./fastapi/app:/fastapi/app
+      - ./fastapi/tests:/fastapi/tests
       - ./fastapi/pyrightconfig.json:/fastapi/pyrightconfig.json # <- basedpyrightの設定ファイルの読み込みのため
     # ↓のcommandの内容は、ruff checkを自動実行(=監視)するためのもの
     command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--watch"]

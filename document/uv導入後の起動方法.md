@@ -165,6 +165,8 @@ docker compose exec pytest-fastapi pytest tests -q \
 ## 4 ruffによるコードチェック
 
 docker compose exec ruff-fastapi ruff check /fastapi/app
+# もちろんfastapi/tests内もruffチェックできる
+docker compose exec ruff-fastapi ruff check /fastapi/tests
 
 ## 4-2ruff 自動修正つき
 
@@ -173,10 +175,10 @@ docker compose exec ruff-fastapi ruff check /fastapi/app --fix
 docker compose exec ruff-fastapi ruff format /fastapi/app
 
 
-## 5 pyrightによる型チェック
-docker compose exec ruff-fastapi basedpyright app
-
-
+## 5 basedpyrightによる型チェック
+docker compose exec ruff-fastapi basedpyright /fastapi/app
+# もちろんfastapi/tests内もbasedpyrightによる型チェックできる
+docker compose exec ruff-fastapi basedpyright /fastapi/tests
 # 6 終了
 docker compose down
 docker compose --profile test down
@@ -240,3 +242,39 @@ greet(123)  # ← pyright が型エラー
 - pyright は 型とロジックの整合性中心
 
 という棲み分けになっています。
+
+
+# テスト作成
+
+基本的にはソースコードは`fastapi/app`ディレクトリ内にあるので、これに対するテストケースは`fastapi/tests`に配置することになる。そして、単体テストとしては、ソースコードファイルと、単体テストケースファイルは1対1で対応するものとする。
+
+例えば、
+- ソースファイルの`fastapi/app/domain/category/value_objects.py`に対するテストケースファイルは、`fastapi/tests/domain/category/test_value_objects.py`が対応する。
+  - このテストケースファイルで、対応するソースファイルに対し単独で、c0,c1カバレッジ100%であり、正常系、異常系、エッジケースの確認ができるようにする。
+  - 上記ソースファイルと同じ階層には`category.py`があるが、これが対応するテストケースファイルは、`fastapi/tests/domain/category/test_category.py`とする。`test_value_objects.py`に混ぜ込んだりはしない。
+- 値オブジェクト、エンティティ、ユースケース、エンドポイント、スキーマなどのソースファイルに対するテストの考え方は以下。
+  - 値オブジェクト：入力値の妥当性確認に責任 → 厳密に異常系をテスト
+  - エンティティ：既に妥当な値を使う前提 → 異常系テストは最小限でよい(値オブジェクトで十分なテストをしている場合、最小限いい場合が多いか。)
+  - サービス層やAPI：ユーザー入力が来る層 → 正常/異常/境界値をしっかりテスト
+
+## DBアクセスなどを伴わないテストの場合のプロンプト
+
+claude sonnet4 のAgentモードを使い、GithubCopilotに単体テストを作成させる場合のプロンプトを考えてみる。
+
+この章では、「実際に稼働しているDBへのアクセスを伴わない場合」のテストを含めた、通常の単体テストを作成する場合のプロンプトとする。
+
+```
+`fastapi/app/domain/items`ディレクトリ内のPythonモジュールについて、unittest.mockは利用せず、pytestとpytest-mockのみを利用して単体テストコード作成してください。なお、テストケース作成時には以下のx点を守って作成して下さい。
+(1) 1モジュールにつき、1テストファイルを作成、テストファイル名は「test_(module_name).py」とする
+(2) 1テストファイルは、テストケースごとに1テスト関数を作成し、テスト関数の関数名は必ず英語で作成する。
+(3) 内容については、対象モジュールについて対応する1テストファイルでc0,c1カバレッジ100%をみたし、正常系・異常系・エッジケースを網羅する単体テストコードを作成してください。
+(4) docstringは必ず日本語で作成し、作成したテスト関数のテストが正常系・異常系・エッジケースのどれに該当するかをdocstringにて「正常系:」、「異常系:」、「エッジケース:」を記載すること。
+(5) 単体テストの観点で必要なテストを作成すること
+(6) 作成したテストモジュールは`fastapi/tests`ディレクトリ内に配置すること。対象ソースファイルと同階層に配置することは禁止する。例えば、対象のモジュールが`fastapi/app/domain/items/xxx.py`であるならば、これに対するテストモジュールは`fastapi/tests/domain/items/test_xxx.py`として作成すること。
+(7) モジュールが非同期の場合、テストには`@pytest.mark.anyio`を使用すること。
+(8) Lintチェックにかかるテストケースを作成してほしくないです。なので、`docker compose exec ruff-fastapi basedpyright /fastapi/tests`コマンド、`docker compose exec ruff-fastapi ruff check /fastapi/tests`コマンドを実行した際に、エラーが発生しないようにしてください。
+(9) テストの実行コマンドは、`docker compose exec pytest-fastapi pytest tests`を使用してください。また、作成したテストについてカバレッジが条件をみたしているかどうかの確認には、`docker compose exec pytest-fastapi pytest tests \
+  --cov=app --cov-branch \
+  --cov-report=term-missing:skip-covered`コマンドを使ってください。
+(10) このプロジェクトでは、docker compose を使用していて、プロジェクトの最上位ディレクトリにdocker-compose.ymlファイルがあります。
+```
