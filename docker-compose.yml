@@ -78,6 +78,7 @@ services:
     volumes:
       - ./fastapi/app:/fastapi/app     # ← ローカルのfastapi内のソースコードをマウント
       - ./fastapi/tests:/fastapi/tests # ← ローカルのfastapi内のテストコードをマウント　
+      - ./fastapi/integrate_tests:/fastapi/integrate_tests # ← ローカルのfastapi内の結合テストコードをマウント　
       - ./ci_artifacts:/ci_artifacts   # ← テスト後のカバレッジレポート出力先を常に共有
     command: sleep infinity
 volumes:
