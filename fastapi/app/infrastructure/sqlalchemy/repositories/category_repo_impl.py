@@ -12,6 +12,10 @@ class SQLAlchemyCategoryRepository(CategoryRepository):
         self.db = db
 
     async def save(self, category: Category) -> None:
+        # IDが0の場合は新しいIDを生成
+        if category.id == 0:
+            category.id = await self.next_identifier()
+        
         orm = CategoryORM(category_id=category.id, category_name=category.name)
         self.db.add(orm)
         await self.db.commit()

@@ -51,6 +51,7 @@ services:
     working_dir: /fastapi
     volumes:
       - ./fastapi/app:/fastapi/app
+      - ./fastapi/tests:/fastapi/tests
       - ./fastapi/pyrightconfig.json:/fastapi/pyrightconfig.json # <- basedpyrightの設定ファイルの読み込みのため
     # ↓のcommandの内容は、ruff checkを自動実行(=監視)するためのもの
     command: ["/fastapi/.venv/bin/ruff", "check", "/fastapi/app", "--watch"]
@@ -77,6 +78,7 @@ services:
     volumes:
       - ./fastapi/app:/fastapi/app     # ← ローカルのfastapi内のソースコードをマウント
       - ./fastapi/tests:/fastapi/tests # ← ローカルのfastapi内のテストコードをマウント　
+      - ./fastapi/integrate_tests:/fastapi/integrate_tests # ← ローカルのfastapi内の結合テストコードをマウント　
       - ./ci_artifacts:/ci_artifacts   # ← テスト後のカバレッジレポート出力先を常に共有
     command: sleep infinity
 volumes:

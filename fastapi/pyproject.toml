@@ -12,31 +12,55 @@ dependencies = [
   "uvicorn[standard]",      # apサーバ(GunicornがWSGIサーバーだったが、これのASGI版 起動コマンドがuvicorn main:app --reloadなど)
                             # standardを指定した理由はhttps://zenn.dev/ryuu/scraps/139081511afdb4　つまり、uvicornだけでなく、uvloopやwebsocketsなどもrequirements.txtに記述したのと一緒にする。
   # --DB関連--
-  "sqlalchemy",             #ORM
-  # alembic                 #sqlalchemy用マイグレーション # ←DBeaverでddlのためのsqlファイルを作成するようになったのでいらなくなった。
-  "psycopg2-binary",
-  "asyncpg",                #psycopg2とは違い、非同期でposgrresを使うためのドライバ
-  "python-dotenv",
+  "sqlalchemy",             # ORM
+  # alembic                 # sqlalchemy用マイグレーション # ←DBeaverでddlのためのsqlファイルを作成するようになったのでいらなくなった。
+  "psycopg2-binary",        # PostgreSQL用の同期ドライバ（SQLAlchemy経由で使用可）。
+  "asyncpg",                # psycopg2とは違い、非同期でPostgreSQLを使うためのドライバ
+  "python-dotenv",          # `.env` ファイルから環境変数を読み込むために使用
   # --httpリクエスト関連--
   # requests                # fastapi内部から、httpリクエストがしたいなら必要
-  "httpx",                  # 上記requestsの非同期が使えるようにするためのもの
+  "httpx",                  # 上記requestsの非同期が使えるようにするためのもの。 非同期HTTPクライアント。FastAPI内部や外部API呼び出し時に使用。
+  "anyio",                  # 非同期バックエンド抽象化ライブラリ。FastAPIやhttpxの内部で使われるので本番用にインストール必須（asyncio, trio などを統一的に扱う）。
   #--ログイン関連--
-  "passlib[bcrypt]",        # パスワードハッシュ化ライブラリ
-  "python-jose[cryptography]",  #JWTトークンの生成・検証ライブラリ
-  "python-multipart",       #ファイルアップロード用
+  "passlib[bcrypt]",        # パスワードのハッシュ化（bcrypt）に使用。
+  "python-jose[cryptography]",  # JWTの生成・検証ライブラリ。ログイン認証トークンの扱いに使用。
+  "python-multipart",       # ファイルアップロード機能をFastAPIで実現するために必要。
 ]
 
 [dependency-groups]
 # ---導入するパッケージの設定(devの場合のみ使用)---
 dev = [
-  "ruff",
-  "pytest",
-  "pytest-cov",
+  "ruff",                 # 静的コード解析と自動フォーマット。flake8 + black のような用途。
+  "pytest",               # Pythonの代表的なテストフレームワーク。単体テストなどに使用。
+  "pytest-cov",           # pytest実行時のテストカバレッジ測定用ライブラリ。
+  "pytest-mock",          # pytest用のモック支援ライブラリ（unittest.mockの薄いラッパー）。
+  "pytest-asyncio",       # 非同期コードをpytestでテスト可能にするプラグイン（asyncioベース）。
+  "pytest-anyio",         # 非同期コードをpytestでテスト可能にするプラグイン（anyioベースのテストも可能）。
+  "trio",                 # anyioのバックエンドの1つ（asyncioと同様）。pytest-anyioによって内部で利用されることがある。
   # CIで型チェックするなら（Node不要で済ませたい場合でpyrightの代わりにbasedpyright）
-  "basedpyright",
+  "basedpyright",         # pyrightの代替でPythonの静的型チェックを行うツール。Node.js不要で軽量。
+
 ]
 
 #---リンター、フォーマッタであるruffのための設定箇所---
 [tool.ruff]
 line-length = 200
 target-version = "py311"
+
+#---pytestのための設定箇所---
+[tool.pytest.ini_options]
+testpaths = ["fastapi/tests"]             # デフォルトで fastapi/tests/ ディレクトリを探索対象とする（省略するとルート全体が対象）
+python_files = ["test_*.py", "*_test.py"] # テストファイル名のパターンを指定（例: test_*.py, *_test.py）
+python_classes = ["Test*"]                # テストクラス名のパターン（例: class TestXxx）
+python_functions = ["test_*"]             # テスト関数名のパターン（例: def test_xxx）
+addopts = [                               # CLI引数として毎回付けるオプションを省略可能にする設定
+    "-v",                                 # 詳細出力（テスト名を個別に表示）
+    "--tb=short",                         # トレースバック出力を簡略化
+    "--strict-markers",                   # 未登録のマーカーを使うとエラーにする（安全なマーカー管理）
+]
+asyncio_mode = "auto"                     # asyncio モードを自動で有効にする
+asyncio_default_fixture_loop_scope = "function"  # asyncio フィクスチャのデフォルトスコープ
+
+#---anyioのための設定箇所---
+[tool.anyio]
+backends = ["asyncio"]                    # 使用する非同期バックエンドを明示的に asyncio に固定します。
