@@ -34,6 +34,7 @@ dev = [
   "pytest",               # Pythonの代表的なテストフレームワーク。単体テストなどに使用。
   "pytest-cov",           # pytest実行時のテストカバレッジ測定用ライブラリ。
   "pytest-mock",          # pytest用のモック支援ライブラリ（unittest.mockの薄いラッパー）。
+  "pytest-asyncio",       # 非同期コードをpytestでテスト可能にするプラグイン（asyncioベース）。
   "pytest-anyio",         # 非同期コードをpytestでテスト可能にするプラグイン（anyioベースのテストも可能）。
   "trio",                 # anyioのバックエンドの1つ（asyncioと同様）。pytest-anyioによって内部で利用されることがある。
   # CIで型チェックするなら（Node不要で済ませたい場合でpyrightの代わりにbasedpyright）
@@ -57,6 +58,8 @@ addopts = [                               # CLI引数として毎回付けるオ
     "--tb=short",                         # トレースバック出力を簡略化
     "--strict-markers",                   # 未登録のマーカーを使うとエラーにする（安全なマーカー管理）
 ]
+asyncio_mode = "auto"                     # asyncio モードを自動で有効にする
+asyncio_default_fixture_loop_scope = "function"  # asyncio フィクスチャのデフォルトスコープ
 
 #---anyioのための設定箇所---
 [tool.anyio]
