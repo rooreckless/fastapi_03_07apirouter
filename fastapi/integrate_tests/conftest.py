@@ -17,6 +17,7 @@ from app.infrastructure.sqlalchemy.models.item_category_association import item_
 def event_loop():
     """ファンクションスコープでasyncioイベントループを共有"""
     loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     yield loop
     loop.close()
 
@@ -26,6 +27,7 @@ async def async_session():
     """
     テスト用のAsyncSessionを提供
     各テストでデータベースの状態を分離するため、テーブルクリアを使用
+    リポジトリのcommit操作にも対応
     """
     # fastapi_dbデータベースに直接接続
     engine = create_async_engine(
@@ -38,20 +40,29 @@ async def async_session():
         engine, expire_on_commit=False, class_=AsyncSession
     )
     
+    # テスト開始前のクリーンアップ
+    async with async_session_maker() as cleanup_session:
+        await cleanup_session.execute(item_category.delete())
+        await cleanup_session.execute(CategoryORM.__table__.delete())
+        await cleanup_session.execute(ItemORM.__table__.delete())
+        await cleanup_session.commit()
+    
+    # テスト用セッション提供
     async with async_session_maker() as session:
-        # テスト開始前に関連テーブルをクリア
-        await session.execute(item_category.delete())
-        await session.execute(CategoryORM.__table__.delete())
-        await session.execute(ItemORM.__table__.delete())
-        await session.commit()
-        
         try:
             yield session
         finally:
-            # テスト後にテーブルをクリア（データクリーンアップ）
-            await session.execute(item_category.delete())
-            await session.execute(CategoryORM.__table__.delete())
-            await session.execute(ItemORM.__table__.delete())
-            await session.commit()
+            # セッション終了時にロールバック（もしトランザクションが残っていた場合）
+            try:
+                await session.rollback()
+            except Exception:
+                pass
+    
+    # テスト後のクリーンアップ
+    async with async_session_maker() as cleanup_session:
+        await cleanup_session.execute(item_category.delete())
+        await cleanup_session.execute(CategoryORM.__table__.delete())
+        await cleanup_session.execute(ItemORM.__table__.delete())
+        await cleanup_session.commit()
     
     await engine.dispose()
