@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 from app.infrastructure.sqlalchemy.models.item_orm import ItemORM
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
 from app.domain.items import Item
-from app.repository.item_repository import ItemRepository  # ②の抽象リポジトリ
+from app.abstract_repository.item_repository import ItemRepository  # ②の抽象リポジトリ
 
 
 class SQLAlchemyItemRepository(ItemRepository):

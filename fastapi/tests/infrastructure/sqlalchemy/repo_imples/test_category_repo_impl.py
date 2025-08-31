@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.category.entity.category import Category
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
-from app.infrastructure.sqlalchemy.repositories.category_repo_impl import SQLAlchemyCategoryRepository
+from app.infrastructure.sqlalchemy.repo_imples.category_repo_impl import SQLAlchemyCategoryRepository
 
 
 class TestSQLAlchemyCategoryRepositoryInit:

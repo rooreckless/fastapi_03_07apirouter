@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.dto.item_dto import ItemCreateDTO, ItemReadDTO, ItemUpdateDTO, ItemUpdateNameDTO
 from app.db.database import get_db
-from app.infrastructure.sqlalchemy.repositories.item_repo_impl import SQLAlchemyItemRepository
+from app.infrastructure.sqlalchemy.repo_imples.item_repo_impl import SQLAlchemyItemRepository
 from app.usecases.item.create_item import CreateItemUseCase
 from app.usecases.item.list_items import ListItemsUseCase
 from app.usecases.item.get_item import GetItemUseCase

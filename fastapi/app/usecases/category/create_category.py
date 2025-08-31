@@ -1,7 +1,7 @@
 # ③ユースケース
 # app/usecases/category/create_category.py
 from app.domain.category import Category
-from app.repository.category_repository import CategoryRepository
+from app.abstract_repository.category_repository import CategoryRepository
 
 class CreateCategoryUseCase:
     def __init__(self, repo: CategoryRepository):

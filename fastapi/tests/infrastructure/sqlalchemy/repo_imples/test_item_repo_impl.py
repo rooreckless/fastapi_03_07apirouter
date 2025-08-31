@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.items.entity.item import Item
 from app.infrastructure.sqlalchemy.models.item_orm import ItemORM
-from app.infrastructure.sqlalchemy.repositories.item_repo_impl import SQLAlchemyItemRepository
+from app.infrastructure.sqlalchemy.repo_imples.item_repo_impl import SQLAlchemyItemRepository
 
 
 class TestSQLAlchemyItemRepositoryInit:
@@ -98,7 +98,7 @@ class TestSQLAlchemyItemRepositorySave:
         
         # Mock ItemORM constructor
         mock_item_orm = mocker.Mock()
-        mocker.patch('app.infrastructure.sqlalchemy.repositories.item_repo_impl.ItemORM', return_value=mock_item_orm)
+        mocker.patch('app.infrastructure.sqlalchemy.repo_imples.item_repo_impl.ItemORM', return_value=mock_item_orm)
         
         repository = SQLAlchemyItemRepository(mock_session)
         item = Item(item_id=3, name="Item with Categories", category_ids=[1, 2])
@@ -126,7 +126,7 @@ class TestSQLAlchemyItemRepositorySave:
         
         # Mock ItemORM constructor
         mock_item_orm = mocker.Mock()
-        mocker.patch('app.infrastructure.sqlalchemy.repositories.item_repo_impl.ItemORM', return_value=mock_item_orm)
+        mocker.patch('app.infrastructure.sqlalchemy.repo_imples.item_repo_impl.ItemORM', return_value=mock_item_orm)
         
         repository = SQLAlchemyItemRepository(mock_session)
         item = Item(item_id=4, name="Sports Item", category_ids=[5])

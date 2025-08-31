@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import AsyncMock
 from app.usecases.item.update_item import UpdateItemUseCase
 from app.domain.items import Item
-from app.repository.item_repository import ItemRepository
+from app.abstract_repository.item_repository import ItemRepository
 
 
 class TestUpdateItemUseCase:

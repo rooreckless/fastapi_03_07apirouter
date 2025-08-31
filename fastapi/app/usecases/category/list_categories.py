@@ -2,7 +2,7 @@
 # app/usecases/category/list_categories.py
 
 from app.domain.category import Category
-from app.repository.category_repository import CategoryRepository
+from app.abstract_repository.category_repository import CategoryRepository
 class ListCategoriesUseCase:
     def __init__(self, repo: CategoryRepository):
         self.repo = repo

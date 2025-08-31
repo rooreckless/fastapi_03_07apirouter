@@ -1,5 +1,5 @@
 # ③ユースケース
-from app.repository.item_repository import ItemRepository
+from app.abstract_repository.item_repository import ItemRepository
 from app.domain.items import Item
 
 class GetItemUseCase:

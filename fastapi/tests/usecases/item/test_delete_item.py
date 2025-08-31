@@ -5,7 +5,7 @@ delete_item.pyのテストモジュール
 import pytest
 from unittest.mock import AsyncMock
 from app.usecases.item.delete_item import DeleteItemUseCase
-from app.repository.item_repository import ItemRepository
+from app.abstract_repository.item_repository import ItemRepository
 
 
 class TestDeleteItemUseCase:

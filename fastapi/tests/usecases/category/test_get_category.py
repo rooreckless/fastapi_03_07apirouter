@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import AsyncMock
 from app.usecases.category.get_category import GetCategoryUseCase
 from app.domain.category import Category
-from app.repository.category_repository import CategoryRepository
+from app.abstract_repository.category_repository import CategoryRepository
 
 
 class TestGetCategoryUseCase:

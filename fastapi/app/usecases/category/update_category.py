@@ -1,7 +1,7 @@
 # ③ユースケース
 # app/usecases/category/update_category.py
 from app.domain.category import Category
-from app.repository.category_repository import CategoryRepository
+from app.abstract_repository.category_repository import CategoryRepository
 
 class UpdateCategoryUseCase:
     def __init__(self, repo: CategoryRepository):

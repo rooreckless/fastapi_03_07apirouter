@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
 from app.domain.category import Category
-from app.repository.category_repository import CategoryRepository # ②の抽象リポジトリ
+from app.abstract_repository.category_repository import CategoryRepository # ②の抽象リポジトリ
 
 class SQLAlchemyCategoryRepository(CategoryRepository):
     #  ②の抽象リポジトリを継承して実装

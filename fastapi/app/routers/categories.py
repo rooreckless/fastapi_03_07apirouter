@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.dto.category_dto import CategoryCreateDTO, CategoryReadDTO, CategoryUpdateDTO
 from app.db.database import get_db
-from app.infrastructure.sqlalchemy.repositories.category_repo_impl import SQLAlchemyCategoryRepository
+from app.infrastructure.sqlalchemy.repo_imples.category_repo_impl import SQLAlchemyCategoryRepository
 from app.usecases.category.create_category import CreateCategoryUseCase
 from app.usecases.category.list_categories import ListCategoriesUseCase
 from app.usecases.category.get_category import GetCategoryUseCase
