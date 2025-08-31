@@ -28,7 +28,11 @@ class ItemMapper:
         return Item(
             item_id=orm.item_id,
             name=orm.item_name,
-            category_ids=category_ids
+            category_ids=category_ids,
+            created_by=orm.created_by,
+            updated_by=orm.updated_by,
+            created_at=orm.created_at,
+            updated_at=orm.updated_at
         )
     
     @staticmethod
@@ -45,7 +49,11 @@ class ItemMapper:
         # カテゴリの関連付けはリポジトリ層で別途処理する
         return ItemORM(
             item_id=item.id,
-            item_name=item.name
+            item_name=item.name,
+            created_by=item.created_by,
+            updated_by=item.updated_by,
+            created_at=item.created_at,
+            updated_at=item.updated_at
         )
     
     @staticmethod
