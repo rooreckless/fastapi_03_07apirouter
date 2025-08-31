@@ -41,7 +41,7 @@ class TestItemBase:
     def test_item_base_missing_item_name(self):
         """異常系: item_nameが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemBase(category_ids=[1, 2])
+            ItemBase(category_ids=[1, 2])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -51,7 +51,7 @@ class TestItemBase:
     def test_item_base_missing_category_ids(self):
         """異常系: category_idsが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemBase(item_name="テストアイテム")
+            ItemBase(item_name="テストアイテム")  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -61,7 +61,7 @@ class TestItemBase:
     def test_item_base_none_item_name(self):
         """異常系: item_nameがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemBase(item_name=None, category_ids=[1])
+            ItemBase(item_name=None, category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -71,7 +71,7 @@ class TestItemBase:
     def test_item_base_invalid_item_name_type(self):
         """異常系: item_nameが文字列以外の場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemBase(item_name=123, category_ids=[1])
+            ItemBase(item_name=123, category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -81,7 +81,7 @@ class TestItemBase:
     def test_item_base_invalid_category_ids_type(self):
         """異常系: category_idsがリストまたはNone以外の場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemBase(item_name="テストアイテム", category_ids="invalid")
+            ItemBase(item_name="テストアイテム", category_ids="invalid")  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) >= 1
@@ -89,7 +89,7 @@ class TestItemBase:
     def test_item_base_invalid_category_id_type(self):
         """異常系: category_idsの要素が文字列で変換できない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemBase(item_name="テストアイテム", category_ids=["invalid", "number"])
+            ItemBase(item_name="テストアイテム", category_ids=["invalid", "number"])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) >= 1
@@ -212,7 +212,7 @@ class TestItemUpdateNameDTO:
     def test_update_name_dto_missing_item_name(self):
         """異常系: item_nameが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemUpdateNameDTO()
+            ItemUpdateNameDTO()  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -222,7 +222,7 @@ class TestItemUpdateNameDTO:
     def test_update_name_dto_none_item_name(self):
         """異常系: item_nameがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemUpdateNameDTO(item_name=None)
+            ItemUpdateNameDTO(item_name=None)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -232,7 +232,7 @@ class TestItemUpdateNameDTO:
     def test_update_name_dto_invalid_type(self):
         """異常系: item_nameが文字列以外の場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemUpdateNameDTO(item_name=123)
+            ItemUpdateNameDTO(item_name=123)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -308,7 +308,7 @@ class TestItemReadDTO:
     def test_read_dto_missing_item_id(self):
         """異常系: item_idが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemReadDTO(item_name="テストアイテム", category_ids=[1])
+            ItemReadDTO(item_name="テストアイテム", category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -318,7 +318,7 @@ class TestItemReadDTO:
     def test_read_dto_missing_item_name(self):
         """異常系: item_nameが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemReadDTO(item_id=1, category_ids=[1])
+            ItemReadDTO(item_id=1, category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -328,7 +328,7 @@ class TestItemReadDTO:
     def test_read_dto_missing_category_ids(self):
         """異常系: category_idsが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemReadDTO(item_id=1, item_name="テストアイテム")
+            ItemReadDTO(item_id=1, item_name="テストアイテム")  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -338,7 +338,7 @@ class TestItemReadDTO:
     def test_read_dto_none_item_id(self):
         """異常系: item_idがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemReadDTO(item_id=None, item_name="テストアイテム", category_ids=[1])
+            ItemReadDTO(item_id=None, item_name="テストアイテム", category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -348,7 +348,7 @@ class TestItemReadDTO:
     def test_read_dto_none_item_name(self):
         """異常系: item_nameがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemReadDTO(item_id=1, item_name=None, category_ids=[1])
+            ItemReadDTO(item_id=1, item_name=None, category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -358,7 +358,7 @@ class TestItemReadDTO:
     def test_read_dto_invalid_id_type(self):
         """異常系: item_idが整数に変換できない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemReadDTO(item_id="invalid", item_name="テストアイテム", category_ids=[1])
+            ItemReadDTO(item_id="invalid", item_name="テストアイテム", category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -366,7 +366,7 @@ class TestItemReadDTO:
     def test_read_dto_invalid_name_type(self):
         """異常系: item_nameが文字列以外の場合."""
         with pytest.raises(ValidationError) as exc_info:
-            ItemReadDTO(item_id=1, item_name=123, category_ids=[1])
+            ItemReadDTO(item_id=1, item_name=123, category_ids=[1])  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1

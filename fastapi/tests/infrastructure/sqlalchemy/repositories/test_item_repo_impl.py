@@ -276,7 +276,7 @@ class TestSQLAlchemyItemRepositoryListAll:
         assert len(items) == 1
         assert items[0].id == 10
         assert items[0].name == "Gaming Laptop"
-        assert set(items[0].category_ids) == {1, 2, 3}
+        assert set(items[0].category_ids or []) == {1, 2, 3}
         mock_session.execute.assert_called_once()
 
     @pytest.mark.anyio
@@ -321,7 +321,7 @@ class TestSQLAlchemyItemRepositoryGetById:
         assert item is not None
         assert item.id == 20
         assert item.name == "Organic Apple"
-        assert set(item.category_ids) == {5, 6}
+        assert set(item.category_ids or []) == {5, 6}
         mock_session.execute.assert_called_once()
 
     @pytest.mark.anyio
@@ -544,7 +544,7 @@ class TestSQLAlchemyItemRepositoryUpdate:
         assert len(mock_item.categories) == 2
         assert mock_item.categories[0].category_id == 10
         assert mock_item.categories[1].category_id == 11
-        assert set(item.category_ids) == {10, 11}
+        assert set(item.category_ids or []) == {10, 11}
         assert mock_session.execute.call_count == 2
         mock_session.commit.assert_called_once()
 

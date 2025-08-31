@@ -39,7 +39,7 @@ class TestCategoryCreateDTO:
     def test_create_dto_missing_category_name(self):
         """異常系: category_nameが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryCreateDTO()
+            CategoryCreateDTO()  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -49,7 +49,7 @@ class TestCategoryCreateDTO:
     def test_create_dto_none_category_name(self):
         """異常系: category_nameがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryCreateDTO(category_name=None)
+            CategoryCreateDTO(category_name=None)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -59,7 +59,7 @@ class TestCategoryCreateDTO:
     def test_create_dto_invalid_type(self):
         """異常系: category_nameが文字列以外の場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryCreateDTO(category_name=123)
+            CategoryCreateDTO(category_name=123)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -107,7 +107,7 @@ class TestCategoryUpdateDTO:
     def test_update_dto_missing_category_name(self):
         """異常系: category_nameが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryUpdateDTO()
+            CategoryUpdateDTO()  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -117,7 +117,7 @@ class TestCategoryUpdateDTO:
     def test_update_dto_none_category_name(self):
         """異常系: category_nameがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryUpdateDTO(category_name=None)
+            CategoryUpdateDTO(category_name=None)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -127,7 +127,7 @@ class TestCategoryUpdateDTO:
     def test_update_dto_invalid_type(self):
         """異常系: category_nameが文字列以外の場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryUpdateDTO(category_name=456)
+            CategoryUpdateDTO(category_name=456)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -184,7 +184,7 @@ class TestCategoryReadDTO:
     def test_read_dto_missing_category_id(self):
         """異常系: category_idが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryReadDTO(category_name="テストカテゴリ")
+            CategoryReadDTO(category_name="テストカテゴリ")  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -194,7 +194,7 @@ class TestCategoryReadDTO:
     def test_read_dto_missing_category_name(self):
         """異常系: category_nameが指定されていない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryReadDTO(category_id=1)
+            CategoryReadDTO(category_id=1)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -204,7 +204,7 @@ class TestCategoryReadDTO:
     def test_read_dto_none_category_id(self):
         """異常系: category_idがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryReadDTO(category_id=None, category_name="テストカテゴリ")
+            CategoryReadDTO(category_id=None, category_name="テストカテゴリ")  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -214,7 +214,7 @@ class TestCategoryReadDTO:
     def test_read_dto_none_category_name(self):
         """異常系: category_nameがNoneの場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryReadDTO(category_id=1, category_name=None)
+            CategoryReadDTO(category_id=1, category_name=None)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -224,7 +224,7 @@ class TestCategoryReadDTO:
     def test_read_dto_invalid_id_type(self):
         """異常系: category_idが文字列で型変換できない場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryReadDTO(category_id="invalid_number", category_name="テストカテゴリ")
+            CategoryReadDTO(category_id="invalid_number", category_name="テストカテゴリ")  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1
@@ -234,7 +234,7 @@ class TestCategoryReadDTO:
     def test_read_dto_invalid_name_type(self):
         """異常系: category_nameが文字列以外の場合."""
         with pytest.raises(ValidationError) as exc_info:
-            CategoryReadDTO(category_id=1, category_name=123)
+            CategoryReadDTO(category_id=1, category_name=123)  # type: ignore
         
         errors = exc_info.value.errors()
         assert len(errors) == 1

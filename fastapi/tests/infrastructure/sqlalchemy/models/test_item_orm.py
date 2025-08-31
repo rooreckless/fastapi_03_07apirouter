@@ -127,8 +127,8 @@ class TestItemORM:
         item = ItemORM()
         # SQLAlchemyでは通常、None値を設定することは可能だが、
         # データベース制約により実際の保存時にエラーになる可能性がある
-        item.item_id = None
-        item.item_name = None
+        item.item_id = None  # type: ignore
+        item.item_name = None  # type: ignore
         
         assert item.item_id is None
         assert item.item_name is None

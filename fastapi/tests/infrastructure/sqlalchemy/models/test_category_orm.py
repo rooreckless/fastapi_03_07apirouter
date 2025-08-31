@@ -126,8 +126,8 @@ class TestCategoryORM:
         category = CategoryORM()
         # SQLAlchemyでは通常、None値を設定することは可能だが、
         # データベース制約により実際の保存時にエラーになる可能性がある
-        category.category_id = None
-        category.category_name = None
+        category.category_id = None  # type: ignore
+        category.category_name = None  # type: ignore
         
         assert category.category_id is None
         assert category.category_name is None
