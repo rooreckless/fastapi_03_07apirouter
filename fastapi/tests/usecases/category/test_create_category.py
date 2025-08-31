@@ -30,19 +30,40 @@ class TestCreateCategoryUseCase:
         mock_repo = AsyncMock(spec=CategoryRepository)
         mock_repo.next_identifier.return_value = 1
         mock_repo.save.return_value = None
+
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=1,
+            name="テストカテゴリ",
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
+        
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=1,
+            name="テストカテゴリ",
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
         
         use_case = CreateCategoryUseCase(mock_repo)
         category_name = "テストカテゴリ"
 
         # Act
-        result = await use_case.execute(category_name)
+        result = await use_case.execute(category_name, 1)
 
         # Assert
         assert isinstance(result, Category)
         assert result.id == 1
         assert result.name == category_name
+        assert result.created_by == 1
+        assert result.updated_by == 1
         mock_repo.next_identifier.assert_called_once()
         mock_repo.save.assert_called_once()
+        mock_repo.get_by_id.assert_called_with(1)
         
         # saveに渡されたカテゴリを検証
         saved_category = mock_repo.save.call_args[0][0]
@@ -56,12 +77,21 @@ class TestCreateCategoryUseCase:
         mock_repo = AsyncMock(spec=CategoryRepository)
         mock_repo.next_identifier.return_value = 2
         mock_repo.save.return_value = None
+
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=2,
+            name="",
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
         
         use_case = CreateCategoryUseCase(mock_repo)
         category_name = ""
 
         # Act
-        result = await use_case.execute(category_name)
+        result = await use_case.execute(category_name, 1)
 
         # Assert
         assert isinstance(result, Category)
@@ -77,12 +107,21 @@ class TestCreateCategoryUseCase:
         mock_repo = AsyncMock(spec=CategoryRepository)
         mock_repo.next_identifier.return_value = 3
         mock_repo.save.return_value = None
+
+        # get_by_idが返すモックカテゴリを設定
+        category_name = "a" * 1000  # 1000文字の長い名前
+        mock_category = Category(
+            category_id=3,
+            name=category_name,
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
         
         use_case = CreateCategoryUseCase(mock_repo)
-        category_name = "a" * 1000  # 1000文字の長い名前
 
         # Act
-        result = await use_case.execute(category_name)
+        result = await use_case.execute(category_name, 1)
 
         # Assert
         assert isinstance(result, Category)
@@ -98,12 +137,30 @@ class TestCreateCategoryUseCase:
         mock_repo = AsyncMock(spec=CategoryRepository)
         mock_repo.next_identifier.return_value = 4
         mock_repo.save.return_value = None
+
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=4,
+            name="テストカテゴリ",
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
         
         use_case = CreateCategoryUseCase(mock_repo)
         category_name = "!@#$%^&*()_+-={}[]|\\:;\"'<>,.?/~`"
 
+        # get_by_idが返すモックカテゴリを設定  
+        mock_category = Category(
+            category_id=4,
+            name=category_name,
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
+
         # Act
-        result = await use_case.execute(category_name)
+        result = await use_case.execute(category_name, 1)
 
         # Assert
         assert isinstance(result, Category)
@@ -119,12 +176,30 @@ class TestCreateCategoryUseCase:
         mock_repo = AsyncMock(spec=CategoryRepository)
         mock_repo.next_identifier.return_value = 5
         mock_repo.save.return_value = None
+
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=5,
+            name="テストカテゴリ",
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
         
         use_case = CreateCategoryUseCase(mock_repo)
         category_name = "テスト🐶🐱🎉カテゴリ"
 
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=5,
+            name=category_name,
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
+
         # Act
-        result = await use_case.execute(category_name)
+        result = await use_case.execute(category_name, 1)
 
         # Assert
         assert isinstance(result, Category)
@@ -140,12 +215,21 @@ class TestCreateCategoryUseCase:
         mock_repo = AsyncMock(spec=CategoryRepository)
         mock_repo.next_identifier.return_value = 0
         mock_repo.save.return_value = None
+
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=0,
+            name="テストカテゴリ",
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
         
         use_case = CreateCategoryUseCase(mock_repo)
         category_name = "テストカテゴリ"
 
         # Act
-        result = await use_case.execute(category_name)
+        result = await use_case.execute(category_name, 1)
 
         # Assert
         assert isinstance(result, Category)
@@ -161,12 +245,21 @@ class TestCreateCategoryUseCase:
         mock_repo = AsyncMock(spec=CategoryRepository)
         mock_repo.next_identifier.return_value = 999999999
         mock_repo.save.return_value = None
+
+        # get_by_idが返すモックカテゴリを設定
+        mock_category = Category(
+            category_id=999999999,
+            name="テストカテゴリ",
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_category
         
         use_case = CreateCategoryUseCase(mock_repo)
         category_name = "テストカテゴリ"
 
         # Act
-        result = await use_case.execute(category_name)
+        result = await use_case.execute(category_name, 1)
 
         # Assert
         assert isinstance(result, Category)

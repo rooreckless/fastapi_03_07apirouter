@@ -40,14 +40,15 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is not None
         assert isinstance(result, Category)
         assert result.id == category_id
         assert result.name == new_name
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_category)
 
     @pytest.mark.anyio
@@ -63,7 +64,7 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is None
@@ -87,12 +88,13 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is not None
         assert result.name == ""
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_category)
 
     @pytest.mark.anyio
@@ -111,12 +113,13 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, same_name)
+        result = await use_case.execute(category_id, same_name, 1)
 
         # Assert
         assert result is not None
         assert result.name == same_name
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_category)
 
     @pytest.mark.anyio
@@ -136,13 +139,14 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is not None
         assert result.name == new_name
         assert len(result.name) == 1000
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_category)
 
     @pytest.mark.anyio
@@ -162,12 +166,13 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is not None
         assert result.name == new_name
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_category)
 
     @pytest.mark.anyio
@@ -187,13 +192,14 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is not None
         assert result.id == 0
         assert result.name == new_name
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_category)
 
     @pytest.mark.anyio
@@ -209,7 +215,7 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is None
@@ -234,10 +240,11 @@ class TestUpdateCategoryUseCase:
         use_case = UpdateCategoryUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(category_id, new_name)
+        result = await use_case.execute(category_id, new_name, 1)
 
         # Assert
         assert result is original_category_ref  # 同じオブジェクトインスタンス
         assert existing_category.name == new_name  # 元のオブジェクトも変更されている
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_category)

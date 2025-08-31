@@ -245,7 +245,15 @@ class TestCategoryReadDTO:
         """正常系: DTOが辞書形式に変換される."""
         dto = CategoryReadDTO(category_id=1, category_name="テストカテゴリ")
         result = dto.model_dump()
-        assert result == {"category_id": 1, "category_name": "テストカテゴリ"}
+        expected = {
+            "category_name": "テストカテゴリ",
+            "category_id": 1,
+            "created_by": None,
+            "updated_by": None,
+            "created_at": None,
+            "updated_at": None
+        }
+        assert result == expected
 
     def test_read_dto_from_dict(self):
         """正常系: 辞書からDTOが作成される."""
@@ -261,8 +269,16 @@ class TestCategoryReadDTO:
             def __init__(self):
                 self.category_id = 1
                 self.category_name = "テストカテゴリ"
+                self.created_by = None
+                self.updated_by = None
+                self.created_at = None
+                self.updated_at = None
         
         mock_obj = MockORM()
         dto = CategoryReadDTO.model_validate(mock_obj)
         assert dto.category_id == 1
         assert dto.category_name == "テストカテゴリ"
+        assert dto.created_by is None
+        assert dto.updated_by is None
+        assert dto.created_at is None
+        assert dto.updated_at is None

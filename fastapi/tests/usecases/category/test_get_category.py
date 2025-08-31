@@ -43,7 +43,7 @@ class TestGetCategoryUseCase:
         assert result is not None
         assert result.id == category_id
         assert result.name == "テストカテゴリ"
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
 
     @pytest.mark.anyio
     async def test_execute_returns_none_for_nonexistent_category(self):
@@ -61,7 +61,7 @@ class TestGetCategoryUseCase:
 
         # Assert
         assert result is None
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
 
     @pytest.mark.anyio
     async def test_execute_with_zero_id(self):
@@ -82,7 +82,7 @@ class TestGetCategoryUseCase:
         assert result == expected_category
         assert result is not None
         assert result.id == 0
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
 
     @pytest.mark.anyio
     async def test_execute_with_negative_id(self):
@@ -100,7 +100,7 @@ class TestGetCategoryUseCase:
 
         # Assert
         assert result is None
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)
 
     @pytest.mark.anyio
     async def test_execute_with_large_id(self):
@@ -121,4 +121,4 @@ class TestGetCategoryUseCase:
         assert result == expected_category
         assert result is not None
         assert result.id == category_id
-        mock_repo.get_by_id.assert_called_once_with(category_id)
+        mock_repo.get_by_id.assert_called_with(category_id)

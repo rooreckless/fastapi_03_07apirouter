@@ -15,7 +15,9 @@ from app.routers.categories import (
     update_category,
 )
 from app.dto.category_dto import CategoryCreateDTO, CategoryReadDTO, CategoryUpdateDTO
+from app.dto.user_dto import UserReadDTO
 from app.domain.category.entity.category import Category
+from datetime import datetime
 
 
 class TestGetCategoryRepo:
@@ -105,34 +107,58 @@ class TestCreate:
     async def test_create_success(self, mocker):
         """正常系: カテゴリが正常に作成される."""
         dto = CategoryCreateDTO(category_name="テストカテゴリ")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_category = Category(
             category_id=1,
-            name="テストカテゴリ"
+            name="テストカテゴリ",
+            created_by=1,
+            updated_by=1,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
         )
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_category
         
-        result = await create(dto, mock_uc)
+        result = await create(dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with("テストカテゴリ")
+        mock_uc.execute.assert_called_once_with("テストカテゴリ", 1)
         assert isinstance(result, CategoryReadDTO)
         assert result.category_id == 1
         assert result.category_name == "テストカテゴリ"
+        assert result.created_by == 1
+        assert result.updated_by == 1
 
     @pytest.mark.anyio
     async def test_create_with_empty_name(self, mocker):
         """エッジケース: 空文字列のカテゴリ名でカテゴリを作成."""
         dto = CategoryCreateDTO(category_name="")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_category = Category(
             category_id=1,
-            name=""
+            name="",
+            created_by=1,
+            updated_by=1,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
         )
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_category
         
-        result = await create(dto, mock_uc)
+        result = await create(dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with("")
+        mock_uc.execute.assert_called_once_with("", 1)
         assert isinstance(result, CategoryReadDTO)
         assert result.category_id == 1
         assert result.category_name == ""
@@ -141,11 +167,18 @@ class TestCreate:
     async def test_create_usecase_raises_exception(self, mocker):
         """異常系: ユースケースで例外が発生する場合."""
         dto = CategoryCreateDTO(category_name="テストカテゴリ")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = Exception("データベースエラー")
         
         with pytest.raises(Exception, match="データベースエラー"):
-            await create(dto, mock_uc)
+            await create(dto, mock_uc, mock_user)
 
 
 class TestListAll:
@@ -274,16 +307,27 @@ class TestUpdateCategory:
         """正常系: カテゴリが正常に更新される."""
         category_id = 1
         dto = CategoryUpdateDTO(category_name="更新されたカテゴリ")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_category = Category(
             category_id=1,
-            name="更新されたカテゴリ"
+            name="更新されたカテゴリ",
+            created_by=1,
+            updated_by=1,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
         )
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_category
         
-        result = await update_category(category_id, dto, mock_uc)
+        result = await update_category(category_id, dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "更新されたカテゴリ")
+        mock_uc.execute.assert_called_once_with(1, "更新されたカテゴリ", 1)
         assert isinstance(result, CategoryReadDTO)
         assert result.category_id == 1
         assert result.category_name == "更新されたカテゴリ"
@@ -293,21 +337,35 @@ class TestUpdateCategory:
         """異常系: 更新対象のカテゴリが見つからない場合."""
         category_id = 999
         dto = CategoryUpdateDTO(category_name="更新されたカテゴリ")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = None
         
         with pytest.raises(HTTPException) as exc_info:
-            await update_category(category_id, dto, mock_uc)
+            await update_category(category_id, dto, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "Category not found"
-        mock_uc.execute.assert_called_once_with(999, "更新されたカテゴリ")
+        mock_uc.execute.assert_called_once_with(999, "更新されたカテゴリ", 1)
 
     @pytest.mark.anyio
     async def test_update_category_with_empty_name(self, mocker):
         """エッジケース: 空文字列でカテゴリ名を更新."""
         category_id = 1
         dto = CategoryUpdateDTO(category_name="")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_category = Category(
             category_id=1,
             name=""
@@ -315,9 +373,9 @@ class TestUpdateCategory:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_category
         
-        result = await update_category(category_id, dto, mock_uc)
+        result = await update_category(category_id, dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "")
+        mock_uc.execute.assert_called_once_with(1, "", 1)
         assert isinstance(result, CategoryReadDTO)
         assert result.category_id == 1
         assert result.category_name == ""
@@ -327,23 +385,37 @@ class TestUpdateCategory:
         """エッジケース: IDが0の場合の更新."""
         category_id = 0
         dto = CategoryUpdateDTO(category_name="更新されたカテゴリ")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = None
         
         with pytest.raises(HTTPException) as exc_info:
-            await update_category(category_id, dto, mock_uc)
+            await update_category(category_id, dto, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "Category not found"
-        mock_uc.execute.assert_called_once_with(0, "更新されたカテゴリ")
+        mock_uc.execute.assert_called_once_with(0, "更新されたカテゴリ", 1)
 
     @pytest.mark.anyio
     async def test_update_category_usecase_raises_exception(self, mocker):
         """異常系: ユースケースで例外が発生する場合."""
         category_id = 1
         dto = CategoryUpdateDTO(category_name="更新されたカテゴリ")
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User", 
+            is_active=True,
+            is_superuser=False
+        )
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = Exception("データベースエラー")
         
         with pytest.raises(Exception, match="データベースエラー"):
-            await update_category(category_id, dto, mock_uc)
+            await update_category(category_id, dto, mock_uc, mock_user)

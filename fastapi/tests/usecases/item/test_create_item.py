@@ -31,12 +31,32 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 1
         mock_repo.save.return_value = None
         
-        use_case = CreateItemUseCase(mock_repo)
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=1,
+            name="テストアイテム",
+            category_ids=[1, 2, 3],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
+        # get_by_idが返すモックアイテムを設定
         item_name = "テストアイテム"
         category_ids = [1, 2, 3]
+        mock_item = Item(
+            item_id=1,
+            name=item_name,
+            category_ids=category_ids,
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+        
+        use_case = CreateItemUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -60,12 +80,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 2
         mock_repo.save.return_value = None
         
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=2,
+            name="テストアイテム",
+            category_ids=[],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
         use_case = CreateItemUseCase(mock_repo)
         item_name = "テストアイテム"
         category_ids = []
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -83,12 +113,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 3
         mock_repo.save.return_value = None
         
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=3,
+            name="テストアイテム",
+            category_ids=[5],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
         use_case = CreateItemUseCase(mock_repo)
         item_name = "テストアイテム"
         category_ids = [5]
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -106,12 +146,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 4
         mock_repo.save.return_value = None
         
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=4,
+            name="",
+            category_ids=[1, 2],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
         use_case = CreateItemUseCase(mock_repo)
         item_name = ""
         category_ids = [1, 2]
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -129,12 +179,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 5
         mock_repo.save.return_value = None
         
-        use_case = CreateItemUseCase(mock_repo)
+        # get_by_idが返すモックアイテムを設定
         item_name = "a" * 1000  # 1000文字の長い名前
         category_ids = [1]
+        mock_item = Item(
+            item_id=5,
+            name=item_name,
+            category_ids=category_ids,
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
+        use_case = CreateItemUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -154,12 +214,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 6
         mock_repo.save.return_value = None
         
-        use_case = CreateItemUseCase(mock_repo)
+        # get_by_idが返すモックアイテムを設定
         item_name = "テストアイテム"
         category_ids = list(range(1, 101))  # 1から100までのカテゴリID
+        mock_item = Item(
+            item_id=6,
+            name=item_name,
+            category_ids=category_ids,
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
+        use_case = CreateItemUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -179,12 +249,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 7
         mock_repo.save.return_value = None
         
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=7,
+            name="テストアイテム",
+            category_ids=[1, 2, 1, 3, 2],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
         use_case = CreateItemUseCase(mock_repo)
         item_name = "テストアイテム"
         category_ids = [1, 2, 1, 3, 2]  # 重複あり
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -202,12 +282,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 8
         mock_repo.save.return_value = None
         
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=8,
+            name="テストアイテム",
+            category_ids=[0, 1, 2],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
         use_case = CreateItemUseCase(mock_repo)
         item_name = "テストアイテム"
         category_ids = [0, 1, 2]
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -225,12 +315,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 9
         mock_repo.save.return_value = None
         
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=9,
+            name="テストアイテム",
+            category_ids=[-1, -2, 1],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
         use_case = CreateItemUseCase(mock_repo)
         item_name = "テストアイテム"
         category_ids = [-1, -2, 1]
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)
@@ -248,12 +348,22 @@ class TestCreateItemUseCase:
         mock_repo.next_identifier.return_value = 0
         mock_repo.save.return_value = None
         
+        # get_by_idが返すモックアイテムを設定
+        mock_item = Item(
+            item_id=0,
+            name="テストアイテム",
+            category_ids=[1, 2],
+            created_by=1,
+            updated_by=1
+        )
+        mock_repo.get_by_id.return_value = mock_item
+                
         use_case = CreateItemUseCase(mock_repo)
         item_name = "テストアイテム"
         category_ids = [1, 2]
 
         # Act
-        result = await use_case.execute(item_name, category_ids)
+        result = await use_case.execute(item_name, category_ids, 1)
 
         # Assert
         assert isinstance(result, Item)

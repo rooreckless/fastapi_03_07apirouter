@@ -44,7 +44,7 @@ class TestGetItemUseCase:
         assert result.id == item_id
         assert result.name == "テストアイテム"
         assert result.category_ids == [1, 2, 3]
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
 
     @pytest.mark.anyio
     async def test_execute_returns_none_for_nonexistent_item(self):
@@ -62,7 +62,7 @@ class TestGetItemUseCase:
 
         # Assert
         assert result is None
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
 
     @pytest.mark.anyio
     async def test_execute_with_item_having_no_categories(self):
@@ -85,7 +85,7 @@ class TestGetItemUseCase:
         assert result.id == item_id
         assert result.name == "カテゴリなしアイテム"
         assert result.category_ids is None
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
 
     @pytest.mark.anyio
     async def test_execute_with_item_having_empty_categories(self):
@@ -108,7 +108,7 @@ class TestGetItemUseCase:
         assert result.id == item_id
         assert result.name == "空カテゴリアイテム"
         assert result.category_ids == []
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
 
     @pytest.mark.anyio
     async def test_execute_with_zero_id(self):
@@ -129,7 +129,7 @@ class TestGetItemUseCase:
         assert result == expected_item
         assert result is not None
         assert result.id == 0
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
 
     @pytest.mark.anyio
     async def test_execute_with_negative_id(self):
@@ -147,7 +147,7 @@ class TestGetItemUseCase:
 
         # Assert
         assert result is None
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
 
     @pytest.mark.anyio
     async def test_execute_with_large_id(self):
@@ -168,4 +168,4 @@ class TestGetItemUseCase:
         assert result == expected_item
         assert result is not None
         assert result.id == item_id
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)

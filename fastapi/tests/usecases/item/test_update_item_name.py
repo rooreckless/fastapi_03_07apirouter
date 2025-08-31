@@ -41,14 +41,15 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, new_name)
+        result = await use_case.execute(item_id, new_name, 1)
 
         # Assert
         assert isinstance(result, Item)
         assert result.id == item_id
         assert result.name == new_name
         assert result.category_ids == original_category_ids  # カテゴリIDは変更されない
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -65,7 +66,7 @@ class TestUpdateItemNameUseCase:
 
         # Act & Assert
         with pytest.raises(ValueError, match="Item not found"):
-            await use_case.execute(item_id, new_name)
+            await use_case.execute(item_id, new_name, 1)
         
         mock_repo.get_by_id.assert_called_once_with(item_id)
         mock_repo.update.assert_not_called()
@@ -88,12 +89,13 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, new_name)
+        result = await use_case.execute(item_id, new_name, 1)
 
         # Assert
         assert result.name == ""
         assert result.category_ids == original_category_ids
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -113,12 +115,13 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, same_name)
+        result = await use_case.execute(item_id, same_name, 1)
 
         # Assert
         assert result.name == same_name
         assert result.category_ids == original_category_ids
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -139,13 +142,14 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, new_name)
+        result = await use_case.execute(item_id, new_name, 1)
 
         # Assert
         assert result.name == new_name
         assert len(result.name) == 1000
         assert result.category_ids == original_category_ids
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -166,12 +170,13 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, new_name)
+        result = await use_case.execute(item_id, new_name, 1)
 
         # Assert
         assert result.name == new_name
         assert result.category_ids == original_category_ids
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -192,12 +197,13 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, new_name)
+        result = await use_case.execute(item_id, new_name, 1)
 
         # Assert
         assert result.name == new_name
         assert result.category_ids == original_category_ids
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -218,13 +224,14 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, new_name)
+        result = await use_case.execute(item_id, new_name, 1)
 
         # Assert
         assert result.id == 0
         assert result.name == new_name
         assert result.category_ids == original_category_ids
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -241,7 +248,7 @@ class TestUpdateItemNameUseCase:
 
         # Act & Assert
         with pytest.raises(ValueError, match="Item not found"):
-            await use_case.execute(item_id, new_name)
+            await use_case.execute(item_id, new_name, 1)
         
         mock_repo.get_by_id.assert_called_once_with(item_id)
         mock_repo.update.assert_not_called()
@@ -265,13 +272,14 @@ class TestUpdateItemNameUseCase:
         use_case = UpdateItemNameUseCase(mock_repo)
 
         # Act
-        result = await use_case.execute(item_id, new_name)
+        result = await use_case.execute(item_id, new_name, 1)
 
         # Assert
         assert result is original_item_ref  # 同じオブジェクトインスタンス
         assert existing_item.name == new_name  # 元のオブジェクトも変更されている
         assert existing_item.category_ids == original_category_ids  # カテゴリIDは変更されない
-        mock_repo.get_by_id.assert_called_once_with(item_id)
+        mock_repo.get_by_id.assert_called_with(item_id)
+        assert mock_repo.get_by_id.call_count == 2
         mock_repo.update.assert_called_once_with(existing_item)
 
     @pytest.mark.anyio
@@ -299,10 +307,11 @@ class TestUpdateItemNameUseCase:
             use_case = UpdateItemNameUseCase(mock_repo)
 
             # Act
-            result = await use_case.execute(item_id, new_name)
+            result = await use_case.execute(item_id, new_name, 1)
 
             # Assert
             assert result.name == new_name
             assert result.category_ids == original_category_ids
             mock_repo.get_by_id.assert_called_with(item_id)
+            assert mock_repo.get_by_id.call_count == 2
             mock_repo.update.assert_called_with(existing_item)

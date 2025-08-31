@@ -20,6 +20,7 @@ from app.routers.items import (
     delete_item,
 )
 from app.dto.item_dto import ItemCreateDTO, ItemReadDTO, ItemUpdateDTO, ItemUpdateNameDTO
+from app.dto.user_dto import UserReadDTO
 from app.domain.items.entity.item import Item
 
 
@@ -142,6 +143,13 @@ class TestCreate:
     async def test_create_success_with_categories(self, mocker):
         """正常系: カテゴリありでアイテムが正常に作成される."""
         dto = ItemCreateDTO(item_name="テストアイテム", category_ids=[1, 2])
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         mock_item = Item(
             item_id=1,
             name="テストアイテム",
@@ -150,9 +158,9 @@ class TestCreate:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await create(dto, mock_uc)
+        result = await create(dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with("テストアイテム", [1, 2])
+        mock_uc.execute.assert_called_once_with("テストアイテム", [1, 2], 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == "テストアイテム"
@@ -162,6 +170,13 @@ class TestCreate:
     async def test_create_success_without_categories(self, mocker):
         """正常系: カテゴリなしでアイテムが正常に作成される."""
         dto = ItemCreateDTO(item_name="テストアイテム", category_ids=None)
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         mock_item = Item(
             item_id=1,
             name="テストアイテム",
@@ -170,9 +185,9 @@ class TestCreate:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await create(dto, mock_uc)
+        result = await create(dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with("テストアイテム", [])
+        mock_uc.execute.assert_called_once_with("テストアイテム", [], 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == "テストアイテム"
@@ -182,6 +197,13 @@ class TestCreate:
     async def test_create_with_empty_category_list(self, mocker):
         """エッジケース: 空のカテゴリリストでアイテムを作成."""
         dto = ItemCreateDTO(item_name="テストアイテム", category_ids=[])
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         mock_item = Item(
             item_id=1,
             name="テストアイテム",
@@ -190,9 +212,9 @@ class TestCreate:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await create(dto, mock_uc)
+        result = await create(dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with("テストアイテム", [])
+        mock_uc.execute.assert_called_once_with("テストアイテム", [], 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == "テストアイテム"
@@ -202,11 +224,18 @@ class TestCreate:
     async def test_create_usecase_raises_exception(self, mocker):
         """異常系: ユースケースで例外が発生する場合."""
         dto = ItemCreateDTO(item_name="テストアイテム", category_ids=[1])
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = Exception("データベースエラー")
         
         with pytest.raises(Exception, match="データベースエラー"):
-            await create(dto, mock_uc)
+            await create(dto, mock_uc, mock_user)
 
 
 class TestListAll:
@@ -337,6 +366,13 @@ class TestUpdateItem:
     @pytest.mark.anyio
     async def test_update_item_success(self, mocker):
         """正常系: アイテムが正常に更新される."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         dto = ItemUpdateDTO(item_name="更新されたアイテム", category_ids=[1, 3])
         mock_item = Item(
@@ -347,9 +383,9 @@ class TestUpdateItem:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await update_item(item_id, dto, mock_uc)
+        result = await update_item(item_id, dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "更新されたアイテム", [1, 3])
+        mock_uc.execute.assert_called_once_with(1, "更新されたアイテム", [1, 3], 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == "更新されたアイテム"
@@ -358,21 +394,35 @@ class TestUpdateItem:
     @pytest.mark.anyio
     async def test_update_item_not_found(self, mocker):
         """異常系: 更新対象のアイテムが見つからない場合."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 999
         dto = ItemUpdateDTO(item_name="更新されたアイテム", category_ids=[1])
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = None
         
         with pytest.raises(HTTPException) as exc_info:
-            await update_item(item_id, dto, mock_uc)
+            await update_item(item_id, dto, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "Item not found"
-        mock_uc.execute.assert_called_once_with(999, "更新されたアイテム", [1])
+        mock_uc.execute.assert_called_once_with(999, "更新されたアイテム", [1], 1)
 
     @pytest.mark.anyio
     async def test_update_item_with_none_categories(self, mocker):
         """エッジケース: カテゴリIDsがNoneでアイテムを更新."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         dto = ItemUpdateDTO(item_name="更新されたアイテム", category_ids=None)
         mock_item = Item(
@@ -383,9 +433,9 @@ class TestUpdateItem:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await update_item(item_id, dto, mock_uc)
+        result = await update_item(item_id, dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "更新されたアイテム", None)
+        mock_uc.execute.assert_called_once_with(1, "更新されたアイテム", None, 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == "更新されたアイテム"
@@ -393,13 +443,20 @@ class TestUpdateItem:
     @pytest.mark.anyio
     async def test_update_item_usecase_raises_exception(self, mocker):
         """異常系: ユースケースで例外が発生する場合."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         dto = ItemUpdateDTO(item_name="更新されたアイテム", category_ids=[1])
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = Exception("データベースエラー")
         
         with pytest.raises(Exception, match="データベースエラー"):
-            await update_item(item_id, dto, mock_uc)
+            await update_item(item_id, dto, mock_uc, mock_user)
 
 
 class TestUpdateNameBody:
@@ -408,6 +465,13 @@ class TestUpdateNameBody:
     @pytest.mark.anyio
     async def test_update_name_body_success(self, mocker):
         """正常系: アイテム名が正常に更新される（Body使用）."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         new_name = "新しい名前"
         mock_item = Item(
@@ -418,9 +482,9 @@ class TestUpdateNameBody:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await update_name_body(item_id, new_name, mock_uc)
+        result = await update_name_body(item_id, new_name, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "新しい名前")
+        mock_uc.execute.assert_called_once_with(1, "新しい名前", 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == "新しい名前"
@@ -429,21 +493,35 @@ class TestUpdateNameBody:
     @pytest.mark.anyio
     async def test_update_name_body_item_not_found(self, mocker):
         """異常系: アイテムが見つからない場合（ValueError）."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 999
         new_name = "新しい名前"
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = ValueError("Item not found")
         
         with pytest.raises(HTTPException) as exc_info:
-            await update_name_body(item_id, new_name, mock_uc)
+            await update_name_body(item_id, new_name, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "Item not found"
-        mock_uc.execute.assert_called_once_with(999, "新しい名前")
+        mock_uc.execute.assert_called_once_with(999, "新しい名前", 1)
 
     @pytest.mark.anyio
     async def test_update_name_body_with_empty_name(self, mocker):
         """エッジケース: 空文字列でアイテム名を更新."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         new_name = ""
         mock_item = Item(
@@ -454,9 +532,9 @@ class TestUpdateNameBody:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await update_name_body(item_id, new_name, mock_uc)
+        result = await update_name_body(item_id, new_name, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "")
+        mock_uc.execute.assert_called_once_with(1, "", 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == ""
@@ -464,13 +542,20 @@ class TestUpdateNameBody:
     @pytest.mark.anyio
     async def test_update_name_body_other_exception(self, mocker):
         """異常系: ValueError以外の例外が発生する場合."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         new_name = "新しい名前"
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = Exception("データベースエラー")
         
         with pytest.raises(Exception, match="データベースエラー"):
-            await update_name_body(item_id, new_name, mock_uc)
+            await update_name_body(item_id, new_name, mock_uc, mock_user)
 
 
 class TestUpdateNameDto:
@@ -479,6 +564,13 @@ class TestUpdateNameDto:
     @pytest.mark.anyio
     async def test_update_name_dto_success(self, mocker):
         """正常系: アイテム名が正常に更新される（DTO使用）."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         dto = ItemUpdateNameDTO(item_name="新しい名前")
         mock_item = Item(
@@ -489,9 +581,9 @@ class TestUpdateNameDto:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await update_name_dto(item_id, dto, mock_uc)
+        result = await update_name_dto(item_id, dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "新しい名前")
+        mock_uc.execute.assert_called_once_with(1, "新しい名前", 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == "新しい名前"
@@ -500,21 +592,35 @@ class TestUpdateNameDto:
     @pytest.mark.anyio
     async def test_update_name_dto_item_not_found(self, mocker):
         """異常系: アイテムが見つからない場合（ValueError）."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 999
         dto = ItemUpdateNameDTO(item_name="新しい名前")
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = ValueError("Item not found")
         
         with pytest.raises(HTTPException) as exc_info:
-            await update_name_dto(item_id, dto, mock_uc)
+            await update_name_dto(item_id, dto, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "Item not found"
-        mock_uc.execute.assert_called_once_with(999, "新しい名前")
+        mock_uc.execute.assert_called_once_with(999, "新しい名前", 1)
 
     @pytest.mark.anyio
     async def test_update_name_dto_with_empty_name(self, mocker):
         """エッジケース: 空文字列でアイテム名を更新."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         dto = ItemUpdateNameDTO(item_name="")
         mock_item = Item(
@@ -525,9 +631,9 @@ class TestUpdateNameDto:
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = mock_item
         
-        result = await update_name_dto(item_id, dto, mock_uc)
+        result = await update_name_dto(item_id, dto, mock_uc, mock_user)
         
-        mock_uc.execute.assert_called_once_with(1, "")
+        mock_uc.execute.assert_called_once_with(1, "", 1)
         assert isinstance(result, ItemReadDTO)
         assert result.item_id == 1
         assert result.item_name == ""
@@ -535,13 +641,20 @@ class TestUpdateNameDto:
     @pytest.mark.anyio
     async def test_update_name_dto_other_exception(self, mocker):
         """異常系: ValueError以外の例外が発生する場合."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         dto = ItemUpdateNameDTO(item_name="新しい名前")
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = Exception("データベースエラー")
         
         with pytest.raises(Exception, match="データベースエラー"):
-            await update_name_dto(item_id, dto, mock_uc)
+            await update_name_dto(item_id, dto, mock_uc, mock_user)
 
 
 class TestDeleteItem:
@@ -550,11 +663,18 @@ class TestDeleteItem:
     @pytest.mark.anyio
     async def test_delete_item_success(self, mocker):
         """正常系: アイテムが正常に削除される."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         mock_uc = AsyncMock()
         mock_uc.execute.return_value = None
         
-        result = await delete_item(item_id, mock_uc)
+        result = await delete_item(item_id, mock_uc, mock_user)
         
         mock_uc.execute.assert_called_once_with(1)
         assert result is None
@@ -562,26 +682,40 @@ class TestDeleteItem:
     @pytest.mark.anyio
     async def test_delete_item_not_found(self, mocker):
         """異常系: 削除対象のアイテムが見つからない場合."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 999
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = ValueError("Item not found")
         
         with pytest.raises(HTTPException) as exc_info:
-            await delete_item(item_id, mock_uc)
+            await delete_item(item_id, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
-        assert exc_info.value.detail == "str(e)"
+        assert exc_info.value.detail == "Item not found"
         mock_uc.execute.assert_called_once_with(999)
 
     @pytest.mark.anyio
     async def test_delete_item_zero_id(self, mocker):
         """エッジケース: IDが0の場合の削除."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 0
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = ValueError("Item not found")
         
         with pytest.raises(HTTPException) as exc_info:
-            await delete_item(item_id, mock_uc)
+            await delete_item(item_id, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
         mock_uc.execute.assert_called_once_with(0)
@@ -589,12 +723,19 @@ class TestDeleteItem:
     @pytest.mark.anyio
     async def test_delete_item_negative_id(self, mocker):
         """エッジケース: 負のIDの場合の削除."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = -1
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = ValueError("Item not found")
         
         with pytest.raises(HTTPException) as exc_info:
-            await delete_item(item_id, mock_uc)
+            await delete_item(item_id, mock_uc, mock_user)
         
         assert exc_info.value.status_code == 404
         mock_uc.execute.assert_called_once_with(-1)
@@ -602,9 +743,16 @@ class TestDeleteItem:
     @pytest.mark.anyio
     async def test_delete_item_other_exception(self, mocker):
         """異常系: ValueError以外の例外が発生する場合."""
+        mock_user = UserReadDTO(
+            user_id=1,
+            mail_address="test@example.com",
+            full_name="Test User",
+            is_active=True,
+            is_superuser=False
+        )
         item_id = 1
         mock_uc = AsyncMock()
         mock_uc.execute.side_effect = Exception("データベースエラー")
         
         with pytest.raises(Exception, match="データベースエラー"):
-            await delete_item(item_id, mock_uc)
+            await delete_item(item_id, mock_uc, mock_user)

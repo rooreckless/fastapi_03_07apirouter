@@ -377,7 +377,16 @@ class TestItemReadDTO:
         """正常系: DTOが辞書形式に変換される."""
         dto = ItemReadDTO(item_id=1, item_name="テストアイテム", category_ids=[1, 2])
         result = dto.model_dump()
-        assert result == {"item_id": 1, "item_name": "テストアイテム", "category_ids": [1, 2]}
+        expected = {
+            "item_name": "テストアイテム",
+            "category_ids": [1, 2],
+            "item_id": 1,
+            "created_by": None,
+            "updated_by": None,
+            "created_at": None,
+            "updated_at": None
+        }
+        assert result == expected
 
     def test_read_dto_from_dict(self):
         """正常系: 辞書からDTOが作成される."""
@@ -395,9 +404,17 @@ class TestItemReadDTO:
                 self.item_id = 1
                 self.item_name = "テストアイテム"
                 self.category_ids = [1, 2]
+                self.created_by = None
+                self.updated_by = None
+                self.created_at = None
+                self.updated_at = None
         
         mock_obj = MockORM()
         dto = ItemReadDTO.model_validate(mock_obj)
         assert dto.item_id == 1
         assert dto.item_name == "テストアイテム"
         assert dto.category_ids == [1, 2]
+        assert dto.created_by is None
+        assert dto.updated_by is None
+        assert dto.created_at is None
+        assert dto.updated_at is None
