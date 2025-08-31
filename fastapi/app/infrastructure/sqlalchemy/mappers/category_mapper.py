@@ -21,7 +21,14 @@ class CategoryMapper:
         Returns:
             Category: ドメインエンティティ
         """
-        return Category(category_id=orm.category_id, name=orm.category_name)
+        return Category(
+            category_id=orm.category_id, 
+            name=orm.category_name,
+            created_by=orm.created_by,
+            updated_by=orm.updated_by,
+            created_at=orm.created_at,
+            updated_at=orm.updated_at
+        )
     
     @staticmethod
     def to_orm(category: Category) -> CategoryORM:
@@ -33,7 +40,14 @@ class CategoryMapper:
         Returns:
             CategoryORM: ORMモデルインスタンス
         """
-        return CategoryORM(category_id=category.id, category_name=category.name)
+        return CategoryORM(
+            category_id=category.id, 
+            category_name=category.name,
+            created_by=category.created_by,
+            updated_by=category.updated_by,
+            created_at=category.created_at,
+            updated_at=category.updated_at
+        )
     
     @staticmethod
     def to_domain_list(orm_list: list[CategoryORM]) -> list[Category]:

@@ -12,7 +12,7 @@ from app.usecases.item.update_item import UpdateItemUseCase
 from app.usecases.item.update_item_name import UpdateItemNameUseCase
 from app.usecases.item.delete_item import DeleteItemUseCase
 
-router = APIRouter(prefix="/items")
+router = APIRouter(prefix="/items", tags=["item"])
 
 # DIチェーン
 def get_item_repo(db: AsyncSession = Depends(get_db)):

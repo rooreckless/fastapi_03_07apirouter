@@ -1,12 +1,28 @@
 from fastapi import FastAPI
 from app.routers.categories import router as category_router
 from app.routers.items import router as item_router
+from app.routers.auth import router as auth_router
 
-app = FastAPI()
+# Swagger UIでの認証設定
+app = FastAPI(
+    title="FastAPI Authentication Demo",
+    description="""
+    認証機能付きFastAPI アプリケーション
+    
+    ## 認証方法
+    1. /auth/token エンドポイントでトークンを取得
+    2. 右上の 🔒 Authorize ボタンをクリック
+    3. username: メールアドレス, password: パスワードを入力
+    """,
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 
-# カテゴリ用ルータとitem用ルータをappに追加
-app.include_router(category_router)
-app.include_router(item_router)
+# ルーターをappに追加
+app.include_router(auth_router)     # 認証関連
+app.include_router(category_router) # カテゴリ関連
+app.include_router(item_router)     # アイテム関連
 
 # ↓app.routerとは関係のないルート
 @app.get("/")
