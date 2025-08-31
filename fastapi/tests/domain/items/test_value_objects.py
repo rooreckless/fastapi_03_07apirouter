@@ -3,7 +3,8 @@ value_objects.pyのテストモジュール
 """
 
 import pytest
-from app.domain.items.value_objects import ItemName, CategoryId
+from app.domain.items.value_objects.item_name import ItemName
+from app.domain.items.value_objects.category_id import CategoryId
 
 
 class TestItemName:

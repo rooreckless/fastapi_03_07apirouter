@@ -2,7 +2,7 @@
 item.pyのテストモジュール
 """
 
-from app.domain.items.item import Item
+from app.domain.items.entity.item import Item
 
 
 class TestItem:

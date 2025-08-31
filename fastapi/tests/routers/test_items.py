@@ -20,7 +20,7 @@ from app.routers.items import (
     delete_item,
 )
 from app.dto.item_dto import ItemCreateDTO, ItemReadDTO, ItemUpdateDTO, ItemUpdateNameDTO
-from app.domain.items.item import Item
+from app.domain.items.entity.item import Item
 
 
 class TestGetItemRepo:

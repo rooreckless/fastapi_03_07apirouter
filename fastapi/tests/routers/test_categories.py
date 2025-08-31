@@ -15,7 +15,7 @@ from app.routers.categories import (
     update_category,
 )
 from app.dto.category_dto import CategoryCreateDTO, CategoryReadDTO, CategoryUpdateDTO
-from app.domain.category.category import Category
+from app.domain.category.entity.category import Category
 
 
 class TestGetCategoryRepo:

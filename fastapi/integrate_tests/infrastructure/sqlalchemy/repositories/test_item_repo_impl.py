@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.sqlalchemy.repositories.item_repo_impl import SQLAlchemyItemRepository
 from app.infrastructure.sqlalchemy.models.item_orm import ItemORM
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
-from app.domain.items.item import Item
+from app.domain.items.entity.item import Item
 
 
 class TestSQLAlchemyItemRepository:

@@ -1,14 +1,14 @@
-# Category domain value objects
-# app/domain/category/value_objects.py
+# Item name value object
+# app/domain/items/value_objects/item_name.py
 
-class CategoryName:
-    """カテゴリ名の値オブジェクト"""
+class ItemName:
+    """アイテム名の値オブジェクト"""
     
     def __init__(self, value: str):
         if not value or len(value.strip()) == 0:
-            raise ValueError("カテゴリ名は空にできません")
-        if len(value) > 100:
-            raise ValueError("カテゴリ名は100文字以内である必要があります")
+            raise ValueError("アイテム名は空にできません")
+        if len(value) > 200:
+            raise ValueError("アイテム名は200文字以内である必要があります")
         self._value = value.strip()
     
     @property
@@ -16,7 +16,7 @@ class CategoryName:
         return self._value
     
     def __eq__(self, other) -> bool:
-        if not isinstance(other, CategoryName):
+        if not isinstance(other, ItemName):
             return False
         return self._value == other._value
     

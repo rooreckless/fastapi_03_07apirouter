@@ -1,0 +1,4 @@
+# Category entity module
+from .category import Category
+
+__all__ = ["Category"]

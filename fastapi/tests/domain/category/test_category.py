@@ -2,7 +2,7 @@
 
 import pytest
 # テスト対象のモジュールをインポート(fastapiからではなく、appから)
-from app.domain.category.category import Category
+from app.domain.category.entity import Category
 # テスト対象モジュールが値オブジェクトを作成するのに必要なのでインポート
 from app.domain.category.value_objects import CategoryName
 
@@ -27,11 +27,6 @@ def test_create_category_id_zero():
     category = Category(category_id=0, name="Zero")
     assert category.id == 0
     assert category.name == "Zero"
-
-# # エッジケース: nameが空文字列　← いらない 値オブジェクトの方であるから。
-# def test_create_category_empty_name():
-#     category = Category(category_id=10, name="")
-#     assert category.name == ""
 
 # 正常系: 100文字ちょうど
 def test_create_category_name_max_length():

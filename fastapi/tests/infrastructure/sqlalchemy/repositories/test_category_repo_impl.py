@@ -13,7 +13,7 @@ import pytest
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.category.category import Category
+from app.domain.category.entity.category import Category
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
 from app.infrastructure.sqlalchemy.repositories.category_repo_impl import SQLAlchemyCategoryRepository
 
