@@ -1,43 +1,72 @@
-# ④Infrastructure層 = 実装(具象)リポジトリ
-# app/infrastructure/sqlalchemy/repositories/category_repo_impl.py
+# Infrastructure層 - Repository実装
+# SQLAlchemyを使用したCategoryリポジトリの具象実装
+# 責務：
+# - 抽象リポジトリインターフェースの実装
+# - データベースへのCRUD操作
+# - Mapperを使用したドメインエンティティとORMモデル間の変換
+# - トランザクション管理
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
+from app.infrastructure.sqlalchemy.mappers.category_mapper import CategoryMapper
 from app.domain.category import Category
-from app.abstract_repository.category_repository import CategoryRepository # ②の抽象リポジトリ
+from app.abstract_repository.category_repository import CategoryRepository # 抽象リポジトリ
 
 class SQLAlchemyCategoryRepository(CategoryRepository):
-    #  ②の抽象リポジトリを継承して実装
+    """SQLAlchemyを使用したCategoryリポジトリの具象実装クラス"""
+    
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.mapper = CategoryMapper()
 
     async def save(self, category: Category) -> None:
+        """カテゴリを保存する（新規作成または更新）
+        
+        Args:
+            category: 保存するCategoryエンティティ
+        """
         # IDが0の場合は新しいIDを生成
         if category.id == 0:
             category.id = await self.next_identifier()
         
-        orm = CategoryORM(category_id=category.id, category_name=category.name)
+        # Mapperを使用してドメインエンティティをORMモデルに変換
+        orm = self.mapper.to_orm(category)
         self.db.add(orm)
         await self.db.commit()
         await self.db.refresh(orm)
-        category.id = orm.category_id   # ①のエンティティへIDを返す
+        category.id = orm.category_id   # エンティティへIDを返す
 
     async def list_all(self) -> list[Category]:
+        """全カテゴリをリスト形式で取得
+        
+        Returns:
+            list[Category]: カテゴリエンティティのリスト
+        """
         res = await self.db.execute(select(CategoryORM))
-        return [Category(r.category_id, r.category_name) for r in res.scalars().all()]
+        return self.mapper.to_domain_list(res.scalars().all())
 
     async def get_by_id(self, category_id: int) -> Category | None:
-        # Itemの詳細取得に使う
+        """IDによるカテゴリの取得
+        
+        Args:
+            category_id: 取得するカテゴリのID
+            
+        Returns:
+            Category | None: カテゴリエンティティまたはNone
+        """
         result = await self.db.execute(
             select(CategoryORM).filter(CategoryORM.category_id == category_id)
         )
         row = result.scalar_one_or_none()
-        if row is None:
-            return None
-        return Category(category_id=row.category_id, name=row.category_name)
+        return self.mapper.to_domain(row) if row else None
     
     async def next_identifier(self) -> int:
-        # カテゴリのIDを生成するためのメソッド
+        """カテゴリのIDを生成するためのメソッド
+        
+        Returns:
+            int: 新しいカテゴリID
+        """
         # 最新のID値(=categoryテーブルの最大のid値)を持つレコードを取得
         result = await self.db.execute(select(CategoryORM.category_id).order_by(CategoryORM.category_id.desc()).limit(1))
         # そのレコードのID値を取得
@@ -47,7 +76,11 @@ class SQLAlchemyCategoryRepository(CategoryRepository):
         return (row + 1) if row is not None else 1
 
     async def update(self, category: Category) -> None:
-        # Itemの更新に使う
+        """カテゴリを更新する
+        
+        Args:
+            category: 更新するCategoryエンティティ
+        """
         db_item = await self.db.get(CategoryORM, category.id)
         if db_item:
             db_item.category_name = category.name

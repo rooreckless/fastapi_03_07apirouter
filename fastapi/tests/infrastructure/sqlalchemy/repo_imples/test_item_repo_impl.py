@@ -86,6 +86,7 @@ class TestSQLAlchemyItemRepositorySave:
         mock_session = mocker.Mock(spec=AsyncSession)
         mock_session.add = mocker.Mock()
         mock_session.commit = mocker.AsyncMock()
+        mock_session.refresh = mocker.AsyncMock()
         
         # Mock category result
         mock_result = mocker.Mock()
@@ -96,11 +97,16 @@ class TestSQLAlchemyItemRepositorySave:
         mock_result.scalars.return_value.all.return_value = mock_categories
         mock_session.execute = mocker.AsyncMock(return_value=mock_result)
         
-        # Mock ItemORM constructor
+        # Mock ItemMapper
+        mock_mapper = mocker.Mock()
         mock_item_orm = mocker.Mock()
-        mocker.patch('app.infrastructure.sqlalchemy.repo_imples.item_repo_impl.ItemORM', return_value=mock_item_orm)
+        # SQLAlchemyのリレーションシップ互換のため、categoriesを適切に初期化
+        mock_item_orm.categories = []  
+        mock_item_orm.item_id = 3
+        mock_mapper.to_orm.return_value = mock_item_orm
         
         repository = SQLAlchemyItemRepository(mock_session)
+        repository.mapper = mock_mapper  # Mapperを手動で設定
         item = Item(item_id=3, name="Item with Categories", category_ids=[1, 2])
 
         # Act
@@ -108,8 +114,12 @@ class TestSQLAlchemyItemRepositorySave:
 
         # Assert
         mock_session.execute.assert_called_once()
+        mock_mapper.to_orm.assert_called_once_with(item)
+        # カテゴリがorm.categoriesに設定されていることを確認
+        assert mock_item_orm.categories == mock_categories
         mock_session.add.assert_called_once_with(mock_item_orm)
         mock_session.commit.assert_called_once()
+        mock_session.refresh.assert_called_once_with(mock_item_orm)
 
     @pytest.mark.anyio
     async def test_save_item_with_single_category(self, mocker: MockerFixture) -> None:
@@ -118,17 +128,23 @@ class TestSQLAlchemyItemRepositorySave:
         mock_session = mocker.Mock(spec=AsyncSession)
         mock_session.add = mocker.Mock()
         mock_session.commit = mocker.AsyncMock()
+        mock_session.refresh = mocker.AsyncMock()
         
         mock_result = mocker.Mock()
         mock_category = mocker.Mock(category_id=5, category_name="Sports")
         mock_result.scalars.return_value.all.return_value = [mock_category]
         mock_session.execute = mocker.AsyncMock(return_value=mock_result)
         
-        # Mock ItemORM constructor
+        # Mock ItemMapper
+        mock_mapper = mocker.Mock()
         mock_item_orm = mocker.Mock()
-        mocker.patch('app.infrastructure.sqlalchemy.repo_imples.item_repo_impl.ItemORM', return_value=mock_item_orm)
+        # SQLAlchemyのリレーションシップ互換のため、categoriesを適切に初期化
+        mock_item_orm.categories = []
+        mock_item_orm.item_id = 4
+        mock_mapper.to_orm.return_value = mock_item_orm
         
         repository = SQLAlchemyItemRepository(mock_session)
+        repository.mapper = mock_mapper  # Mapperを手動で設定
         item = Item(item_id=4, name="Sports Item", category_ids=[5])
 
         # Act
@@ -136,8 +152,12 @@ class TestSQLAlchemyItemRepositorySave:
 
         # Assert
         mock_session.execute.assert_called_once()
+        mock_mapper.to_orm.assert_called_once_with(item)
+        # カテゴリがorm.categoriesに設定されていることを確認
+        assert mock_item_orm.categories == [mock_category]
         mock_session.add.assert_called_once_with(mock_item_orm)
         mock_session.commit.assert_called_once()
+        mock_session.refresh.assert_called_once_with(mock_item_orm)
 
     @pytest.mark.anyio
     async def test_save_item_with_japanese_name(self, mocker: MockerFixture) -> None:

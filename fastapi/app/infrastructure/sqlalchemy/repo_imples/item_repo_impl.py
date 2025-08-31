@@ -1,23 +1,36 @@
-# ④Infrastructure層 = 実装(具象)リポジトリ
-# app/infrastructure/sqlalchemy/repositories/item_repo_impl.py
+# Infrastructure層 - Repository実装
+# SQLAlchemyを使用したItemリポジトリの具象実装
+# 責務：
+# - 抽象リポジトリインターフェースの実装
+# - データベースへのCRUD操作
+# - Mapperを使用したドメインエンティティとORMモデル間の変換
+# - カテゴリとの多対多関係の管理
+# - トランザクション管理
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.infrastructure.sqlalchemy.models.item_orm import ItemORM
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
+from app.infrastructure.sqlalchemy.mappers.item_mapper import ItemMapper
 from app.domain.items import Item
-from app.abstract_repository.item_repository import ItemRepository  # ②の抽象リポジトリ
+from app.abstract_repository.item_repository import ItemRepository  # 抽象リポジトリ
 
 
 class SQLAlchemyItemRepository(ItemRepository):
-    # ②の抽象リポジトリを継承して実装
+    """SQLAlchemyを使用したItemリポジトリの具象実装クラス"""
+    
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.mapper = ItemMapper()
 
     async def save(self, item: Item) -> None:
-        # Itemの追加など保存時に使う
-            
-        # CategoryORMインスタンスを取得(item.category_idsで直接ItemORMを取得しない。いちいち、リストの長さ分CategoryORMを検索する)
+        """アイテムを保存する（新規作成または更新）
+        
+        Args:
+            item: 保存するItemエンティティ
+        """
+        # CategoryORMインスタンスを取得(item.category_idsから該当するカテゴリを検索)
         categories = []
         if item.category_ids:
             result = await self.db.execute(
@@ -27,47 +40,50 @@ class SQLAlchemyItemRepository(ItemRepository):
             )
             categories = result.scalars().all()
         
-        orm = ItemORM(
-            item_id=item.id,
-            item_name=item.name,
-            categories=categories
-        )
+        # Mapperを使用してドメインエンティティをORMモデルに変換
+        orm = self.mapper.to_orm(item)
+        # カテゴリの関連付けを設定
+        orm.categories = categories
         
         self.db.add(orm)
         await self.db.commit()
         await self.db.refresh(orm)
-        item.id = orm.item_id   # ①のエンティティへIDを返す
+        item.id = orm.item_id   # エンティティへIDを返す
 
     async def list_all(self) -> list[Item]:
-        # Itemの一覧取得時に使う
+        """全アイテムをリスト形式で取得
+        
+        Returns:
+            list[Item]: アイテムエンティティのリスト
+        """
         res = await self.db.execute(
             select(ItemORM).options(selectinload(ItemORM.categories))
         )
-        items = []
-        for r in res.scalars().all():
-            category_ids = [cat.category_id for cat in r.categories]
-            items.append(Item(r.item_id, r.item_name, category_ids))
-        return items
+        return self.mapper.to_domain_list(res.scalars().all())
 
     async def get_by_id(self, item_id: int) -> Item | None:
-        # Itemの詳細取得に使う
+        """IDによるアイテムの取得
+        
+        Args:
+            item_id: 取得するアイテムのID
+            
+        Returns:
+            Item | None: アイテムエンティティまたはNone
+        """
         result = await self.db.execute(
             select(ItemORM)
             .options(selectinload(ItemORM.categories))
             .filter(ItemORM.item_id == item_id)
         )
         row = result.scalar_one_or_none()
-        if row is None:
-            return None
-        category_ids = [cat.category_id for cat in row.categories]
-        return Item(
-            item_id=row.item_id,
-            name=row.item_name,
-            category_ids=category_ids
-        )
+        return self.mapper.to_domain(row) if row else None
     
     async def next_identifier(self) -> int:
-        # アイテムのIDを生成するためのメソッド
+        """アイテムのIDを生成するためのメソッド
+        
+        Returns:
+            int: 新しいアイテムID
+        """
         # 最新のID値(=itemテーブルの最大のid値)を持つレコードを取得
         result = await self.db.execute(
             select(ItemORM.item_id)
@@ -81,7 +97,11 @@ class SQLAlchemyItemRepository(ItemRepository):
         return (row + 1) if row is not None else 1
 
     async def update(self, item: Item) -> None:
-        # Itemの更新に使う
+        """アイテムを更新する
+        
+        Args:
+            item: 更新するItemエンティティ
+        """
         # まず既存のアイテムを関係データと一緒に取得
         result = await self.db.execute(
             select(ItemORM)
@@ -114,7 +134,14 @@ class SQLAlchemyItemRepository(ItemRepository):
             await self.db.commit()
 
     async def delete(self, item_id: int) -> Item | None:
-        # Itemの削除に使う
+        """アイテムを削除する
+        
+        Args:
+            item_id: 削除するアイテムのID
+            
+        Returns:
+            Item | None: 削除されたアイテムまたはNone
+        """
         item = await self.db.get(ItemORM, item_id)
         if item is None:
             raise ValueError(f"Item with ID {item_id} not found.")
