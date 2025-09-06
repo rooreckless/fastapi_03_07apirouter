@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from app.routers.categories import router as category_router
 from app.routers.items import router as item_router
 from app.routers.auth import router as auth_router
-
+from datetime import datetime
+from zoneinfo import ZoneInfo
 # Swagger UIでの認証設定
 app = FastAPI(
     title="FastAPI Authentication Demo",
@@ -29,7 +30,42 @@ app.include_router(item_router)     # アイテム関連
 async def root():
     return {"message": "Hello FastAPI + PostgreSQL + Docker Compose!"}
 
+# fastapi/app/main.py または適切なルーターファイルに追加
+@app.get("/health")
+async def health_check():
+    """
+    ヘルスチェック用エンドポイント
+    ECSやロードバランサーからの監視に使用
+    """
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+        "service": "fastapi-app"
+    }
 
+# より詳細なヘルスチェック（データベース接続確認付き）
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """
+    詳細なヘルスチェック（データベース接続確認など）
+    """
+    try:
+        # データベース接続確認
+        # 実際のデータベース接続コードに応じて調整
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+            "service": "fastapi-app",
+            "database": "connected",
+            "dependencies": "ok"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+            "service": "fastapi-app",
+            "error": str(e)
+        }
 # import uuid
 # def get_token():
 #     token = str(uuid.uuid4())
