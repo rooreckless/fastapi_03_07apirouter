@@ -1,5 +1,5 @@
 # ③ユースケース
-from app.repository.category_repository import CategoryRepository
+from app.abstract_repository.category_repository import CategoryRepository
 from app.domain.category import Category
 
 class GetCategoryUseCase:

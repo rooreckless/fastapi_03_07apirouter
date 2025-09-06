@@ -1,7 +1,8 @@
 # app/dto/item_dto.py
 # スキーマ =⑤のエンドポイントで引数に入れられる
 from pydantic import BaseModel, ConfigDict
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 
 class ItemBase(BaseModel):
     item_name: str
@@ -17,6 +18,10 @@ class ItemUpdateNameDTO(BaseModel):
 
 class ItemReadDTO(ItemBase):
     item_id: int
+    created_by: Optional[int] = None
+    updated_by: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
     # class Config:
     #     from_attributes = True

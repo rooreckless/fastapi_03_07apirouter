@@ -1,7 +1,9 @@
-from typing import TYPE_CHECKING
-from sqlalchemy import String
+from typing import TYPE_CHECKING, Optional
+from datetime import datetime
+from sqlalchemy import String, Integer, DateTime, ForeignKey
 # Mappedを使う新しい書き方にする
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
 from app.db.base import Base
 
 # 中間テーブルもimportして、ItemORMで利用できるようにする
@@ -16,6 +18,11 @@ class ItemORM(Base):
 
     item_id: Mapped[int] = mapped_column(primary_key=True, index=True)
     item_name: Mapped[str] = mapped_column(String, nullable=False)
+    created_by: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.user_id"), nullable=True)
+    updated_by: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.user_id"), nullable=True)
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=True)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
+    
     # カテゴリは、listとして扱う。
     # relationshipを使って、CategoryORMとの多対多の関係を定義し、直接の相手はCategoryORMではなく、item_categoryという中間テーブルを使う。
     categories: Mapped[list["CategoryORM"]] = relationship(

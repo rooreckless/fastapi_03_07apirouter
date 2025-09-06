@@ -5,6 +5,8 @@
 # # このファイルにより、データのバリデーションが自動で行われ、APIの利用者に対して一貫したデータ形式を保証します。
 
 from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
 
 class CategoryCreateDTO(BaseModel):
     category_name: str
@@ -16,6 +18,10 @@ class CategoryUpdateDTO(CategoryCreateDTO):
 
 class CategoryReadDTO(CategoryCreateDTO):
     category_id: int
+    created_by: Optional[int] = None
+    updated_by: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         # orm_mode = True
