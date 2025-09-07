@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 # 全てのモデルをインポート
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
 from app.infrastructure.sqlalchemy.models.item_orm import ItemORM
+from app.infrastructure.sqlalchemy.models.user_orm import UserORM
 from app.infrastructure.sqlalchemy.models.item_category_association import item_category
 
 
@@ -31,7 +32,7 @@ async def async_session():
     """
     # fastapi_dbデータベースに直接接続
     engine = create_async_engine(
-        "postgresql+asyncpg://fastapi_user:fastapi_pass@postgres:5432/fastapi_db",
+        "postgresql+asyncpg://fastapi_user:fastapipass@postgres:5432/fastapi_db",
         echo=False, 
         future=True
     )
