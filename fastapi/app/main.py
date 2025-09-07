@@ -1,9 +1,18 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Depends
 from app.routers.categories import router as category_router
 from app.routers.items import router as item_router
 from app.routers.auth import router as auth_router
+from app.db.database import get_db
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import logging
+import os
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+
+# ロギングの設定
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 # Swagger UIでの認証設定
 app = FastAPI(
     title="FastAPI Authentication Demo",
@@ -42,6 +51,78 @@ async def health_check():
         "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
         "service": "fastapi-app"
     }
+
+# データベース初期化エンドポイント
+@app.post("/admin/init-database")
+async def init_database_tables(db: AsyncSession = Depends(get_db)):
+    """
+    データベーステーブルを初期化するエンドポイント
+    app/db/sqls/ddl.sqlファイルを読み込んで実行します
+    セキュリティのため、本番環境では削除または認証を追加してください
+    """
+    try:
+        # DDLファイルのパスを取得（app/db/sqls/ddl.sql）
+        sql_file_path = os.path.join(os.path.dirname(__file__), "db/sqls/ddl.sql")
+        
+        # SQLファイルを読み込み
+        with open(sql_file_path, 'r', encoding='utf-8') as f:
+            ddl_script = f.read()
+        
+        # SQLを分割して実行（コメント行とDROP文を除外）
+        statements = []
+        for line in ddl_script.split('\n'):
+            line = line.strip()
+            # コメント行とDROP文をスキップ
+            if line and not line.startswith('--') and not line.upper().startswith('DROP'):
+                statements.append(line)
+        
+        # 文ごとに分割（セミコロンで区切る）
+        full_script = ' '.join(statements)
+        sql_statements = [stmt.strip() for stmt in full_script.split(';') if stmt.strip()]
+        
+        for statement in sql_statements:
+            if statement:
+                # CREATE TABLE文をCREATE TABLE IF NOT EXISTSに変更
+                if statement.upper().startswith('CREATE TABLE'):
+                    statement = statement.replace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS', 1)
+                await db.execute(text(statement))
+        
+        await db.commit()
+        
+        return {
+            "status": "success",
+            "message": "データベーステーブルが正常に初期化されました（app/db/sqls/ddl.sqlから読み込み）",
+            "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+            "tables_created": ["users", "categories", "items", "item_category"],
+            "sql_file": "app/db/sqls/ddl.sql"
+        }
+    
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"データベース初期化エラー: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"データベース初期化に失敗しました: {str(e)}")
+
+# データベースのテーブル確認エンドポイント
+@app.get("/admin/check-database")
+async def check_database_tables(db: AsyncSession = Depends(get_db)):
+    """
+    データベーステーブルの存在確認
+    """
+    try:
+        # テーブル一覧を取得
+        result = await db.execute(text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"))
+        tables = [row[0] for row in result.fetchall()]
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+            "tables": tables,
+            "table_count": len(tables)
+        }
+    
+    except Exception as e:
+        logger.error(f"データベース確認エラー: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"データベース確認に失敗しました: {str(e)}")
 
 # より詳細なヘルスチェック（データベース接続確認付き）
 @app.get("/health/detailed")
