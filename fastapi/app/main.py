@@ -1,9 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Depends
 from app.routers.categories import router as category_router
 from app.routers.items import router as item_router
 from app.routers.auth import router as auth_router
+from app.db.database import get_db
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import logging
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+
+# ロギングの設定
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 # Swagger UIでの認証設定
 app = FastAPI(
     title="FastAPI Authentication Demo",
@@ -42,6 +50,110 @@ async def health_check():
         "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
         "service": "fastapi-app"
     }
+
+# データベース初期化エンドポイント
+@app.post("/admin/init-database")
+async def init_database_tables(db: AsyncSession = Depends(get_db)):
+    """
+    データベーステーブルを初期化するエンドポイント
+    セキュリティのため、本番環境では削除または認証を追加してください
+    """
+    try:
+        # DDLスクリプトを実行
+        ddl_script = """
+        -- Users table
+        CREATE TABLE IF NOT EXISTS users (
+            user_id int4 NOT NULL,
+            mail_address varchar NOT NULL,
+            hashed_password varchar NOT NULL,
+            full_name varchar NULL,
+            is_active bool DEFAULT true NOT NULL,
+            is_superuser bool DEFAULT false NOT NULL,
+            created_at timestamptz DEFAULT now() NOT NULL,
+            updated_at timestamptz DEFAULT now() NOT NULL,
+            CONSTRAINT users_mail_address_unique UNIQUE (mail_address),
+            CONSTRAINT users_pk PRIMARY KEY (user_id)
+        );
+
+        -- Categories table
+        CREATE TABLE IF NOT EXISTS categories (
+            category_id int4 NOT NULL,
+            category_name varchar NOT NULL,
+            created_by int4 NULL,
+            updated_by int4 NULL,
+            created_at timestamptz DEFAULT now() NOT NULL,
+            updated_at timestamptz DEFAULT now() NOT NULL,
+            CONSTRAINT categories_pk PRIMARY KEY (category_id),
+            CONSTRAINT categoryies_unique UNIQUE (category_name),
+            CONSTRAINT fk_users_pk1 FOREIGN KEY (created_by) REFERENCES users(user_id),
+            CONSTRAINT fk_users_pk2 FOREIGN KEY (updated_by) REFERENCES users(user_id)
+        );
+
+        -- Items table
+        CREATE TABLE IF NOT EXISTS items (
+            item_id int4 NOT NULL,
+            item_name varchar NOT NULL,
+            created_by int4 NULL,
+            updated_by int4 NULL,
+            created_at timestamptz DEFAULT now() NOT NULL,
+            updated_at timestamptz DEFAULT now() NOT NULL,
+            CONSTRAINT item_pk PRIMARY KEY (item_id),
+            CONSTRAINT fk_users_pk1 FOREIGN KEY (updated_by) REFERENCES users(user_id),
+            CONSTRAINT fk_users_pk2 FOREIGN KEY (created_by) REFERENCES users(user_id)
+        );
+
+        -- Item_category table
+        CREATE TABLE IF NOT EXISTS item_category (
+            item_id int4 NOT NULL,
+            category_id int4 NOT NULL,
+            CONSTRAINT item_category_pk PRIMARY KEY (item_id, category_id),
+            CONSTRAINT item_category_categories_fk FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE,
+            CONSTRAINT item_category_items_fk FOREIGN KEY (item_id) REFERENCES items(item_id) ON DELETE CASCADE
+        );
+        """
+        
+        # SQLを分割して実行
+        statements = [stmt.strip() for stmt in ddl_script.split(';') if stmt.strip()]
+        
+        for statement in statements:
+            if statement:
+                await db.execute(text(statement))
+        
+        await db.commit()
+        
+        return {
+            "status": "success",
+            "message": "データベーステーブルが正常に初期化されました",
+            "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+            "tables_created": ["users", "categories", "items", "item_category"]
+        }
+    
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"データベース初期化エラー: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"データベース初期化に失敗しました: {str(e)}")
+
+# データベースのテーブル確認エンドポイント
+@app.get("/admin/check-database")
+async def check_database_tables(db: AsyncSession = Depends(get_db)):
+    """
+    データベーステーブルの存在確認
+    """
+    try:
+        # テーブル一覧を取得
+        result = await db.execute(text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"))
+        tables = [row[0] for row in result.fetchall()]
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+            "tables": tables,
+            "table_count": len(tables)
+        }
+    
+    except Exception as e:
+        logger.error(f"データベース確認エラー: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"データベース確認に失敗しました: {str(e)}")
 
 # より詳細なヘルスチェック（データベース接続確認付き）
 @app.get("/health/detailed")
