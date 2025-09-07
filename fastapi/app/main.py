@@ -6,6 +6,7 @@ from app.db.database import get_db
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import logging
+import os
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
@@ -56,76 +57,44 @@ async def health_check():
 async def init_database_tables(db: AsyncSession = Depends(get_db)):
     """
     データベーステーブルを初期化するエンドポイント
+    app/db/sqls/ddl.sqlファイルを読み込んで実行します
     セキュリティのため、本番環境では削除または認証を追加してください
     """
     try:
-        # DDLスクリプトを実行
-        ddl_script = """
-        -- Users table
-        CREATE TABLE IF NOT EXISTS users (
-            user_id int4 NOT NULL,
-            mail_address varchar NOT NULL,
-            hashed_password varchar NOT NULL,
-            full_name varchar NULL,
-            is_active bool DEFAULT true NOT NULL,
-            is_superuser bool DEFAULT false NOT NULL,
-            created_at timestamptz DEFAULT now() NOT NULL,
-            updated_at timestamptz DEFAULT now() NOT NULL,
-            CONSTRAINT users_mail_address_unique UNIQUE (mail_address),
-            CONSTRAINT users_pk PRIMARY KEY (user_id)
-        );
-
-        -- Categories table
-        CREATE TABLE IF NOT EXISTS categories (
-            category_id int4 NOT NULL,
-            category_name varchar NOT NULL,
-            created_by int4 NULL,
-            updated_by int4 NULL,
-            created_at timestamptz DEFAULT now() NOT NULL,
-            updated_at timestamptz DEFAULT now() NOT NULL,
-            CONSTRAINT categories_pk PRIMARY KEY (category_id),
-            CONSTRAINT categoryies_unique UNIQUE (category_name),
-            CONSTRAINT fk_users_pk1 FOREIGN KEY (created_by) REFERENCES users(user_id),
-            CONSTRAINT fk_users_pk2 FOREIGN KEY (updated_by) REFERENCES users(user_id)
-        );
-
-        -- Items table
-        CREATE TABLE IF NOT EXISTS items (
-            item_id int4 NOT NULL,
-            item_name varchar NOT NULL,
-            created_by int4 NULL,
-            updated_by int4 NULL,
-            created_at timestamptz DEFAULT now() NOT NULL,
-            updated_at timestamptz DEFAULT now() NOT NULL,
-            CONSTRAINT item_pk PRIMARY KEY (item_id),
-            CONSTRAINT fk_users_pk1 FOREIGN KEY (updated_by) REFERENCES users(user_id),
-            CONSTRAINT fk_users_pk2 FOREIGN KEY (created_by) REFERENCES users(user_id)
-        );
-
-        -- Item_category table
-        CREATE TABLE IF NOT EXISTS item_category (
-            item_id int4 NOT NULL,
-            category_id int4 NOT NULL,
-            CONSTRAINT item_category_pk PRIMARY KEY (item_id, category_id),
-            CONSTRAINT item_category_categories_fk FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE CASCADE,
-            CONSTRAINT item_category_items_fk FOREIGN KEY (item_id) REFERENCES items(item_id) ON DELETE CASCADE
-        );
-        """
+        # DDLファイルのパスを取得（app/db/sqls/ddl.sql）
+        sql_file_path = os.path.join(os.path.dirname(__file__), "db/sqls/ddl.sql")
         
-        # SQLを分割して実行
-        statements = [stmt.strip() for stmt in ddl_script.split(';') if stmt.strip()]
+        # SQLファイルを読み込み
+        with open(sql_file_path, 'r', encoding='utf-8') as f:
+            ddl_script = f.read()
         
-        for statement in statements:
+        # SQLを分割して実行（コメント行とDROP文を除外）
+        statements = []
+        for line in ddl_script.split('\n'):
+            line = line.strip()
+            # コメント行とDROP文をスキップ
+            if line and not line.startswith('--') and not line.upper().startswith('DROP'):
+                statements.append(line)
+        
+        # 文ごとに分割（セミコロンで区切る）
+        full_script = ' '.join(statements)
+        sql_statements = [stmt.strip() for stmt in full_script.split(';') if stmt.strip()]
+        
+        for statement in sql_statements:
             if statement:
+                # CREATE TABLE文をCREATE TABLE IF NOT EXISTSに変更
+                if statement.upper().startswith('CREATE TABLE'):
+                    statement = statement.replace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS', 1)
                 await db.execute(text(statement))
         
         await db.commit()
         
         return {
             "status": "success",
-            "message": "データベーステーブルが正常に初期化されました",
+            "message": "データベーステーブルが正常に初期化されました（app/db/sqls/ddl.sqlから読み込み）",
             "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
-            "tables_created": ["users", "categories", "items", "item_category"]
+            "tables_created": ["users", "categories", "items", "item_category"],
+            "sql_file": "app/db/sqls/ddl.sql"
         }
     
     except Exception as e:
