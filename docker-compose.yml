@@ -32,7 +32,7 @@ services:
       - .envs/local/postgres
     volumes:
       - fastapi01_postgres_data:/var/lib/postgresql/data
-      - ./postgres/initdb:/docker-entrypoint-initdb.d
+      - ./fastapi/app/db/sqls:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fastapi_user} -d ${POSTGRES_DB:-fastapi_db} -h localhost"]
       interval: 2s
