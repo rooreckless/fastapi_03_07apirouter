@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers.categories import router as category_router
 from app.routers.items import router as item_router
 from app.routers.auth import router as auth_router
@@ -13,6 +14,13 @@ from sqlalchemy import text
 # ロギングの設定
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# CORS設定のための環境変数を取得
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080,http://localhost:5173").split(",")
+CORS_CREDENTIALS = os.getenv("CORS_CREDENTIALS", "true").lower() == "true"
+CORS_METHODS = os.getenv("CORS_METHODS", "GET,POST,PUT,DELETE,OPTIONS").split(",")
+CORS_HEADERS = os.getenv("CORS_HEADERS", "*").split(",") if os.getenv("CORS_HEADERS") != "*" else ["*"]
+
 # Swagger UIでの認証設定
 app = FastAPI(
     title="FastAPI Authentication Demo",
@@ -29,6 +37,15 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# CORS設定を追加
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,  # 開発環境: フロントエンドのURL, 本番環境: CloudFrontのURL
+    allow_credentials=CORS_CREDENTIALS,  # 認証クッキー/ヘッダーを許可
+    allow_methods=CORS_METHODS,  # 許可するHTTPメソッド
+    allow_headers=CORS_HEADERS,  # 許可するヘッダー
+)
+
 # ルーターをappに追加
 app.include_router(auth_router)     # 認証関連
 app.include_router(category_router) # カテゴリ関連
@@ -38,6 +55,19 @@ app.include_router(item_router)     # アイテム関連
 @app.get("/")
 async def root():
     return {"message": "Hello FastAPI + PostgreSQL + Docker Compose!"}
+
+@app.get("/cors-test")
+async def cors_test():
+    """
+    CORS設定のテスト用エンドポイント
+    フロントエンドからのアクセステストに使用
+    """
+    return {
+        "message": "CORS is working!",
+        "timestamp": datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(),
+        "cors_origins": CORS_ORIGINS,
+        "service": "fastapi-backend"
+    }
 
 # fastapi/app/main.py または適切なルーターファイルに追加
 @app.get("/health")
