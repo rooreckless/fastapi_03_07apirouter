@@ -16,6 +16,7 @@ services:
                                     # 逆に - ./fastapi/app:/fastapi/app のように コードだけをマウントすれば、イメージ側に作られた .venv は生きたまま、コード変更だけが即時反映されます。これが「重要」と言った理由です。
     env_file:
       - .envs/local/postgres
+      - .envs/local/cors
     depends_on:
       - postgres
     command: ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
