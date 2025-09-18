@@ -15,8 +15,7 @@ services:
                                     # 結果 → コンテナ起動時に uvicorn が PATH に無くて失敗、や、ライブラリ ImportError が起きる。
                                     # 逆に - ./fastapi/app:/fastapi/app のように コードだけをマウントすれば、イメージ側に作られた .venv は生きたまま、コード変更だけが即時反映されます。これが「重要」と言った理由です。
     env_file:
-      - .envs/local/postgres
-      - .envs/local/cors
+      - .envs/local/env_local
     depends_on:
       - postgres
     command: ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -30,7 +29,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - .envs/local/postgres
+      - .envs/local/env_local
     volumes:
       - fastapi01_postgres_data:/var/lib/postgresql/data
       - ./fastapi/app/db/sqls:/docker-entrypoint-initdb.d
@@ -71,7 +70,7 @@ services:
       pytest-fastapi
     working_dir: /fastapi
     env_file:
-      - .envs/local/postgres
+      - .envs/local/env_local
     environment:
       PYTHONPATH: /fastapi
     depends_on:

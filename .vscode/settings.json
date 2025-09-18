@@ -1,0 +1,24 @@
+{
+    "python.defaultInterpreterPath": "./fastapi/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.extraPaths": [
+        "./fastapi"
+    ],
+    "python.envFile": "${workspaceFolder}/.envs/local/env_debug",
+    "python.terminal.executeInFileDir": false,
+    "python.linting.enabled": true,
+    "python.linting.ruffEnabled": true,
+    "python.formatting.provider": "none",
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true
+    }
+}
