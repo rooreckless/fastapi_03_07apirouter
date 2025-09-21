@@ -3,18 +3,20 @@
 実際のPostgreSQLデータベースにアクセスする統合テスト用の設定
 fastapi_dbを使用し、テストごとにトランザクションレベルで分離
 """
+
 import asyncio
 import os
-import pytest
 from pathlib import Path
+
+import pytest
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # 全てのモデルをインポート
 from app.infrastructure.sqlalchemy.models.category_orm import CategoryORM
+from app.infrastructure.sqlalchemy.models.item_category_association import item_category
 from app.infrastructure.sqlalchemy.models.item_orm import ItemORM
 from app.infrastructure.sqlalchemy.models.user_orm import UserORM
-from app.infrastructure.sqlalchemy.models.item_category_association import item_category
 
 
 @pytest.fixture(scope="function")
@@ -26,7 +28,7 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="function") 
+@pytest.fixture(scope="function")
 async def async_session():
     """
     テスト用のAsyncSessionを提供
@@ -38,22 +40,16 @@ async def async_session():
     test_env_path = current_dir.parent / ".envs" / "test" / ".env"
     if test_env_path.exists():
         load_dotenv(test_env_path)
-    
+
     # 環境変数からDATABASE_URLを取得
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
         raise ValueError("DATABASE_URL environment variable is not set for integration tests")
-    
-    engine = create_async_engine(
-        database_url,
-        echo=False, 
-        future=True
-    )
-    
-    async_session_maker = async_sessionmaker(
-        engine, expire_on_commit=False, class_=AsyncSession
-    )
-    
+
+    engine = create_async_engine(database_url, echo=False, future=True)
+
+    async_session_maker = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
     # テスト開始前のクリーンアップ
     async with async_session_maker() as cleanup_session:
         await cleanup_session.execute(item_category.delete())
@@ -61,7 +57,7 @@ async def async_session():
         await cleanup_session.execute(ItemORM.__table__.delete())
         await cleanup_session.execute(UserORM.__table__.delete())
         await cleanup_session.commit()
-    
+
     # テスト用セッション提供
     async with async_session_maker() as session:
         try:
@@ -72,7 +68,7 @@ async def async_session():
                 await session.rollback()
             except Exception:
                 pass
-    
+
     # テスト後のクリーンアップ
     async with async_session_maker() as cleanup_session:
         await cleanup_session.execute(item_category.delete())
@@ -80,5 +76,5 @@ async def async_session():
         await cleanup_session.execute(ItemORM.__table__.delete())
         await cleanup_session.execute(UserORM.__table__.delete())
         await cleanup_session.commit()
-    
+
     await engine.dispose()
