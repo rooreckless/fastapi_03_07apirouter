@@ -10,8 +10,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .envs/production/postgres
-      - .envs/production/cors
+      - .envs/production/env_prod
     environment:
       # 本番環境用の追加設定
       ENVIRONMENT: "production"
@@ -28,7 +27,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - .envs/production/postgres
+      - .envs/production/env_prod
     volumes:
       - fastapi_prod_postgres_data:/var/lib/postgresql/data
       - ./fastapi/app/db/sqls:/docker-entrypoint-initdb.d

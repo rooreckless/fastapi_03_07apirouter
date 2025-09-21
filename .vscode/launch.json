@@ -1,0 +1,55 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "FastAPI Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8000",
+                "--reload"
+            ],
+            "cwd": "${workspaceFolder}/fastapi",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/fastapi"
+            },
+            "envFile": "${workspaceFolder}/.envs/local/env_debug",
+            "jinja": true,
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "showReturnValue": true
+        },
+        {
+            "name": "FastAPI Debug (Local DB)",
+            "type": "debugpy", 
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--host",
+                "127.0.0.1", 
+                "--port",
+                "8000",
+                "--reload",
+                "--log-level",
+                "debug"
+            ],
+            "cwd": "${workspaceFolder}/fastapi",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/fastapi"
+            },
+            "envFile": "${workspaceFolder}/.envs/local/env_debug",
+            "jinja": true,
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "showReturnValue": true
+        }
+    ]
+}

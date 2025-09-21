@@ -49,7 +49,7 @@ target-version = "py311"
 
 #---pytestのための設定箇所---
 [tool.pytest.ini_options]
-testpaths = ["fastapi/tests"]             # デフォルトで fastapi/tests/ ディレクトリを探索対象とする（省略するとルート全体が対象）
+testpaths = ["fastapi/tests", "fastapi/integrate_tests"]             # デフォルトで fastapi/tests/ と integrate_tests/ ディレクトリを探索対象とする
 python_files = ["test_*.py", "*_test.py"] # テストファイル名のパターンを指定（例: test_*.py, *_test.py）
 python_classes = ["Test*"]                # テストクラス名のパターン（例: class TestXxx）
 python_functions = ["test_*"]             # テスト関数名のパターン（例: def test_xxx）

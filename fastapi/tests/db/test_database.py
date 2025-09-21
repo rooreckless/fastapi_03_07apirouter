@@ -20,7 +20,15 @@ class TestDatabaseModule:
 
     def test_database_url_environment_variable_not_set(self, mocker):
         """異常系: DATABASE_URL環境変数が設定されていない場合."""
-        mocker.patch.dict(os.environ, {}, clear=True)
+        # 環境変数読み込み関数をモック（何もしない）
+        mocker.patch('app.db.database._load_environment_variables')
+        # os.getenvをモックしてDATABASE_URLに対してNoneを返す
+        def mock_getenv(key, default=None):
+            if key == "DATABASE_URL":
+                return None
+            return os.getenv(key, default) if hasattr(os, '_original_getenv') else default
+        mocker.patch('app.db.database.os.getenv', side_effect=mock_getenv)
+        
         with pytest.raises(ValueError, match="DATABASE_URL environment variable is not set"):
             # database.pyの再読み込みをシミュレート
             import importlib
@@ -29,8 +37,10 @@ class TestDatabaseModule:
 
     def test_database_url_environment_variable_none(self, mocker):
         """異常系: DATABASE_URL環境変数がNoneの場合."""
-        mocker.patch.dict(os.environ, {"DATABASE_URL": ""})
-        mocker.patch("os.getenv", return_value=None)
+        # 環境変数読み込み関数をモック（何もしない）
+        mocker.patch('app.db.database._load_environment_variables')
+        # os.getenvをモックしてDATABASE_URLに対してNoneを返す
+        mocker.patch('app.db.database.os.getenv', return_value=None)
         with pytest.raises(ValueError, match="DATABASE_URL environment variable is not set"):
             import importlib
             import app.db.database

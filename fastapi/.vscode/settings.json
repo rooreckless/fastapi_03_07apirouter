@@ -1,0 +1,10 @@
+{
+    "python.testing.pytestArgs": [
+        "integrate_tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.testing.testResult.passed.color": "green", 
+    "python.testing.testResult.failed.color": "red",
+    "python.testing.testResult.skipped.color": "yellow",
+}

@@ -39,7 +39,7 @@ jobs:
       - name: Create CI env file
         run: |
           mkdir -p .envs/local
-          cat > .envs/local/postgres <<'EOF'
+          cat > .envs/local/env_local <<'EOF'
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
