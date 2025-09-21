@@ -4,7 +4,10 @@
 fastapi_dbを使用し、テストごとにトランザクションレベルで分離
 """
 import asyncio
+import os
 import pytest
+from pathlib import Path
+from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 # 全てのモデルをインポート
@@ -30,9 +33,19 @@ async def async_session():
     各テストでデータベースの状態を分離するため、テーブルクリアを使用
     リポジトリのcommit操作にも対応
     """
-    # fastapi_dbデータベースに直接接続
+    # 上位階層のテスト用環境変数を読み込み
+    current_dir = Path(__file__).parent.parent
+    test_env_path = current_dir.parent / ".envs" / "test" / ".env"
+    if test_env_path.exists():
+        load_dotenv(test_env_path)
+    
+    # 環境変数からDATABASE_URLを取得
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable is not set for integration tests")
+    
     engine = create_async_engine(
-        "postgresql+asyncpg://fastapi_user:fastapipass@postgres:5432/fastapi_db",
+        database_url,
         echo=False, 
         future=True
     )
@@ -46,6 +59,7 @@ async def async_session():
         await cleanup_session.execute(item_category.delete())
         await cleanup_session.execute(CategoryORM.__table__.delete())
         await cleanup_session.execute(ItemORM.__table__.delete())
+        await cleanup_session.execute(UserORM.__table__.delete())
         await cleanup_session.commit()
     
     # テスト用セッション提供
@@ -64,6 +78,7 @@ async def async_session():
         await cleanup_session.execute(item_category.delete())
         await cleanup_session.execute(CategoryORM.__table__.delete())
         await cleanup_session.execute(ItemORM.__table__.delete())
+        await cleanup_session.execute(UserORM.__table__.delete())
         await cleanup_session.commit()
     
     await engine.dispose()

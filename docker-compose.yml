@@ -73,6 +73,15 @@ services:
       - .envs/local/env_local
     environment:
       PYTHONPATH: /fastapi
+      # テスト用の環境変数を直接設定
+      # POSTGRES_USER: fastapi_user
+      # POSTGRES_PASSWORD: fastapipass
+      # POSTGRES_DB: fastapi_db
+      # DATABASE_URL: postgresql+asyncpg://fastapi_user:fastapipass@postgres:5432/fastapi_db
+      # SYNC_DATABASE_URL: postgresql+psycopg2://fastapi_user:fastapipass@postgres:5432/fastapi_db
+      # JWT_SECRET_KEY: test-secret-key-for-pytest-only
+      # JWT_ALG: HS256
+      # ACCESS_TOKEN_EXPIRE_MINUTES: 30
     depends_on:
       - postgres
     volumes:
