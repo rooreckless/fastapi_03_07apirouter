@@ -3,21 +3,30 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# 上位階層の環境変数ファイルを読み込み
-# テスト環境の場合はtest/.env、通常はlocal/env_localを使用
-current_dir = Path(__file__).parent.parent.parent
-test_env_path = current_dir.parent / ".envs" / "test" / ".env"
-local_env_path = current_dir.parent / ".envs" / "local" / "env_local"
+def _load_environment_variables():
+    """環境変数ファイルを読み込む"""
+    current_dir = Path(__file__).parent.parent.parent
+    test_env_path = current_dir.parent / ".envs" / "test" / ".env"
+    local_env_path = current_dir.parent / ".envs" / "local" / "env_local"
 
-# テスト実行時か通常実行かを判定してファイルを選択
-if os.getenv("PYTEST_CURRENT_TEST") or "pytest" in os.environ.get("_", ""):
-    # pytestで実行されている場合はtest/.envを使用
-    if test_env_path.exists():
-        load_dotenv(test_env_path)
-else:
-    # 通常実行時はlocal/env_localを使用
-    if local_env_path.exists():
-        load_dotenv(local_env_path)
+    # 実行環境を判定して適切な環境変数ファイルを選択
+    if os.getenv("PYTEST_CURRENT_TEST") or "pytest" in os.environ.get("_", "") or any("pytest" in arg for arg in os.environ.get("PYTHONPATH", "").split(":")):
+        # pytest実行時: VSCodeローカル環境ではtest/.envを使用
+        if test_env_path.exists():
+            load_dotenv(test_env_path)
+    elif os.path.exists("/.dockerenv") or os.getenv("PYTHONPATH") == "/fastapi":
+        # Docker環境: local/env_localを使用（Docker Composeでのテスト実行時）
+        if local_env_path.exists():
+            load_dotenv(local_env_path)
+    else:
+        # その他の場合: test/.envを優先、なければlocal/env_localを使用
+        if test_env_path.exists():
+            load_dotenv(test_env_path)
+        elif local_env_path.exists():
+            load_dotenv(local_env_path)
+
+# 環境変数を読み込む
+_load_environment_variables()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

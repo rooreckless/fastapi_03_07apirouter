@@ -35,11 +35,20 @@ async def async_session():
     各テストでデータベースの状態を分離するため、テーブルクリアを使用
     リポジトリのcommit操作にも対応
     """
-    # 上位階層のテスト用環境変数を読み込み
+    # 上位階層の環境変数を読み込み（実行環境に応じて適切なファイルを選択）
     current_dir = Path(__file__).parent.parent
     test_env_path = current_dir.parent / ".envs" / "test" / ".env"
-    if test_env_path.exists():
-        load_dotenv(test_env_path)
+    local_env_path = current_dir.parent / ".envs" / "local" / "env_local"
+    
+    # 実行環境を判定して適切な環境変数ファイルを選択
+    if os.path.exists("/.dockerenv") or os.getenv("PYTHONPATH") == "/fastapi":
+        # Docker環境: local/env_localを使用
+        if local_env_path.exists():
+            load_dotenv(local_env_path)
+    else:
+        # VSCodeローカル環境: test/.envを使用
+        if test_env_path.exists():
+            load_dotenv(test_env_path)
 
     # 環境変数からDATABASE_URLを取得
     database_url = os.getenv("DATABASE_URL")
