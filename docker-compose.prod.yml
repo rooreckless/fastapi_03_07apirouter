@@ -3,7 +3,7 @@ services:
   fastapi:
     build:
       context: .
-      dockerfile: ./fastapi/Dockerfile/local/Dockerfile
+      dockerfile: ./fastapi/Dockerfile/prod/Dockerfile
       args:
         INCLUDE_DEV: "false"
     container_name: fastapi-prod
@@ -15,14 +15,22 @@ services:
       # 本番環境用の追加設定
       ENVIRONMENT: "production"
       LOG_LEVEL: "info"
+      WORKERS: "4"
     depends_on:
-      - postgres
-    command: ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     
   postgres:
     build:
       context: .
-      dockerfile: ./postgres/Dockerfile/local/Dockerfile
+      dockerfile: ./postgres/Dockerfile/prod/Dockerfile
     container_name: postgres-prod
     ports:
       - "5432:5432"
@@ -31,6 +39,7 @@ services:
     volumes:
       - fastapi_prod_postgres_data:/var/lib/postgresql/data
       - ./fastapi/app/db/sqls:/docker-entrypoint-initdb.d
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fastapi_user} -d ${POSTGRES_DB:-fastapi_db} -h localhost"]
       interval: 10s
@@ -40,3 +49,8 @@ services:
 
 volumes:
   fastapi_prod_postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: fastapi_prod_network
